@@ -1,0 +1,24 @@
+import {
+    gql
+} from 'apollo-boost'
+
+export default gql `
+    query {
+        allSporteintrag{
+            id
+            dateOfEntry
+          commentOfTheDay
+            category{
+                name
+            }
+            uebungseintragSet {
+                numberOfSets
+                numberOfReps
+                exercise {
+                    name
+                }
+                isWorkout
+            }
+        }
+    }
+`

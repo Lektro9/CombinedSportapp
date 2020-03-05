@@ -1,0 +1,121 @@
+graphQL planning sportapp:
+
+Queries:
+- allSportEintrag x (needs to be changed in the end, because too many entries)
+query {
+  allSporteintrag{
+  	id
+    dateOfEntry
+    category{
+      name
+    }
+    uebungseintragSet {
+      numberOfSets
+      numberOfReps
+      exercise {
+        name
+      }
+      isWorkout
+    }
+  }
+}
+- category (show all categories) x
+query {
+  allKategorie{
+    name
+  }
+}
+- exercise (Argument: category, show all exercises for this category) x
+query {
+  allUebungSearch(categoryName:"Pushup"){
+    name
+  }
+}
+
+Mutations:
+in Gui you can add a new Uebungseintrag
+- CreateSportEntry
+	- date (datetime.now?) (WTF ITS SO HARD TO GET IT TO WORK) I did it?
+	mutation CreateSportEntry{
+	  createSportEntry{
+		sportEntry{
+		  dateOfEntry
+		}
+	  }
+	}
+- UpdateSportEntry
+	- category (choosable, needs to be queried first <- needs to be an object of that kind? is there another way?)
+	- commentOfTheDay
+mutation UpdateSportEntry{
+  UpdateSportEntry(id: 13, categoryId: 2, comment:"lesgo") {
+    entry{
+      id
+      category {
+        id
+        name
+      }
+      commentOfTheDay
+    }
+  }
+}
+
+- CreateExerciseEntry
+	- needs a sportEntry (foreignkey, should be set automatically)
+	- isWorkout needs to be set (depending on where the entry was added)
+mutation createExercise{
+  createExerciseEntry(sportEntryId: 13, isWorkout: false) {
+    exerciseEntry{
+      id
+      numberOfSets
+      numberOfReps
+      exercise {
+        id
+      }
+    }
+  }
+}
+	
+- UpdateExerciseEntry
+	- numberOfSets 
+	- numberOfReps
+	- exercise (can only be one out of the category given by card, needs to be queried when Entry is Created)
+mutation updateExerciseEntry {
+  updateExerciseEntry(id: 1, exerciseId: 1, numberOfSets: 1, numberOfReps: 5){
+    exerciseEntry{
+      id
+      sportEntry {
+        uebungseintragSet{
+          id
+          __typename
+        }
+      }
+    }
+  }
+}
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
