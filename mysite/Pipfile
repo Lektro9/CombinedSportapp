@@ -17,7 +17,7 @@ pytz = "==2019.3"
 singledispatch = "==3.4.0.3"
 six = "==1.13.0"
 sqlparse = "==0.3.0"
-Django = "==2.2.7"
+Django = "==2.2.10"
 Rx = "==1.6.1"
 
 [requires]
