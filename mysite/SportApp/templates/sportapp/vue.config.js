@@ -9,6 +9,8 @@ module.exports = {
         /^.*robots.*$/,
         /^.*svg.*$/,
         /^.*png.*$/,
+        /^.*ico.*$/,
+        /^.*map.*$/,
       ],
     },
     themeColor: '#1da025'
