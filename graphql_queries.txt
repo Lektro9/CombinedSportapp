@@ -38,9 +38,9 @@ in Gui you can add a new Uebungseintrag
 	- date (datetime.now?) (WTF ITS SO HARD TO GET IT TO WORK) I did it?
 	mutation CreateSportEntry{
 	  createSportEntry{
-		sportEntry{
-		  dateOfEntry
-		}
+      sportEntry{
+        dateOfEntry
+      }
 	  }
 	}
 - UpdateSportEntry

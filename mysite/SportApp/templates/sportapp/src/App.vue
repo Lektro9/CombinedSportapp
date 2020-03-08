@@ -26,8 +26,19 @@
         </v-navigation-drawer>
 
         <v-app-bar app color="blue" dark>
-          <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
-          <v-toolbar-title>Application</v-toolbar-title>
+          <v-row justify="space-between">
+            <v-col>
+              <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
+            </v-col>
+            <v-col>
+              <v-toolbar-title class="mt-2 text-center">Application</v-toolbar-title>
+            </v-col>
+            <v-col class="text-right">
+              <v-btn icon @click="addCard()">
+                <v-icon>mdi-plus</v-icon>
+              </v-btn>
+            </v-col>
+          </v-row>
         </v-app-bar>
 
         <v-content>
@@ -52,6 +63,8 @@
 
 <script>
 import ExerciseCard from "./components/ExerciseCard";
+import gql from "graphql-tag";
+import CreateSportEntry from "./queries/CreateSportEntry.gql";
 
 export default {
   props: {
@@ -86,6 +99,51 @@ export default {
         comment: "is this even possible?"
       }
     ]
-  })
+  }),
+  methods: {
+    addCard() {
+      this.$apollo.mutate({
+        mutation: gql`
+          mutation CreateSportEntry {
+            createSportEntry {
+              sportEntry {
+                dateOfEntry
+              }
+            }
+          }
+        `
+      });
+    }
+  },
+  apollo: {
+    // Simple query that will update the 'hello' vue property
+    allSporteintrag: {
+      query: gql`
+        {
+          allSporteintrag {
+            id
+            dateOfEntry
+            commentOfTheDay
+            category {
+              name
+            }
+            uebungseintragSet {
+              numberOfSets
+              numberOfReps
+              exercise {
+                name
+              }
+              isWorkout
+            }
+          }
+        }
+      `,
+      update: data => {
+        data.allSporteintrag;
+        // eslint-disable-next-line no-console
+        console.log(data.allSporteintrag);
+      }
+    }
+  }
 };
 </script>

@@ -59,8 +59,9 @@ class CreateSportEntry(graphene.Mutation):
 
     def mutate(self, info):
         dateNow = timezone.now()
+        # TODO: For now I have to give some default values in
         entry = Sporteintrag(
-            dateOfEntry=dateNow.strftime('%Y-%m-%d %H:%M:%S'))
+            dateOfEntry=dateNow.strftime('%Y-%m-%d %H:%M:%S'), category=Kategorie.objects.get(pk=1), commentOfTheDay="defaultTest")
         entry.save()
         # fixes graphQL weird error
         return CreateSportEntry(sportEntry=Sporteintrag.objects.get(pk=entry.pk))
