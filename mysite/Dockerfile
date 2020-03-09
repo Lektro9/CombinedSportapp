@@ -17,6 +17,7 @@ RUN pip install pipenv
 RUN pipenv install --skip-lock --system --dev
 
 # create statics folder
+RUN mkdir -p /home/app
 ENV HOME=/home/app
 ENV APP_HOME=/home/app/web
 RUN mkdir $APP_HOME
@@ -24,4 +25,4 @@ RUN mkdir $APP_HOME/static
 WORKDIR $APP_HOME
 
 # copy project
-COPY . /usr/src/app/
+COPY . $APP_HOME
