@@ -1,7 +1,7 @@
 # CombinedSportapp
 This is a combinded version of Sportapp and SportappFrontend
 
-#docker commands
+# Docker commands
 $ docker-compose down -v
 
 $ docker-compose -f docker-compose.prod.yml up -d --build
