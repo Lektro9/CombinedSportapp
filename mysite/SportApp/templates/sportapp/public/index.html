@@ -12,7 +12,7 @@
     />
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@mdi/font@latest/css/materialdesignicons.min.css"
+      href="https://unpkg.com/@mdi/font@latest/css/materialdesignicons.min.css"
     />
     <link rel="manifest" href="<%= BASE_URL %>manifest.json" />
   </head>
@@ -25,22 +25,21 @@
     </noscript>
     <div id="app"></div>
     <script>
-     var serviceWorkerPath = "/service-worker.js";
-     var charchaServiceWorker = registerServiceWorker(serviceWorkerPath);
-     function registerServiceWorker(serviceWorkerPath){
-       if('serviceWorker' in navigator){
+      var serviceWorkerPath = '/service-worker.js';
+      var charchaServiceWorker = registerServiceWorker(serviceWorkerPath);
+      function registerServiceWorker(serviceWorkerPath) {
+        if ('serviceWorker' in navigator) {
           navigator.serviceWorker
-          .register(serviceWorkerPath)
-          .then(
-            function(reg){
+            .register(serviceWorkerPath)
+            .then(function(reg) {
               console.log('charcha service worker registered');
-            }
-          ).catch(function(error){
-            console.log(error)
-          });
-    }
- }
-</script>
+            })
+            .catch(function(error) {
+              console.log(error);
+            });
+        }
+      }
+    </script>
     <!-- built files will be auto injected -->
   </body>
 </html>
