@@ -2,6 +2,8 @@ import graphene
 from django.utils import timezone
 from graphene_django.types import DjangoObjectType
 
+from datetime import datetime
+
 from SportApp.models import Sporteintrag, Kategorie, Uebung, Uebungseintrag
 
 # Queries:
@@ -55,13 +57,16 @@ class Query(graphene.ObjectType):
 
 
 class CreateSportEntry(graphene.Mutation):
+    class Arguments:
+        createdAt = graphene.String(required=True)
+
     sportEntry = graphene.Field(SporteintragType)
 
-    def mutate(self, info):
-        dateNow = timezone.now()
+    def mutate(self, info, createdAt):
+        dateNow = createdAt
         # TODO: For now I have to give some default values in
         entry = Sporteintrag(
-            dateOfEntry=dateNow.strftime('%Y-%m-%d %H:%M:%S'), category=Kategorie.objects.get(pk=1), commentOfTheDay="defaultTest")
+            dateOfEntry=datetime.strptime(dateNow, "%Y-%m-%dT%H:%M:%S.%fZ"), category=Kategorie.objects.get(pk=1), commentOfTheDay="defaultTest")
         entry.save()
         # fixes graphQL weird error
         return CreateSportEntry(sportEntry=Sporteintrag.objects.get(pk=entry.pk))
@@ -124,12 +129,25 @@ class UpdateExerciseEntry(graphene.Mutation):
         # Notice we return an instance of this mutation
         return UpdateExerciseEntry(exerciseEntry=exerciseEntry)
 
+class DeleteSportEntry(graphene.Mutation):
+    class Arguments:
+        id = graphene.Int(required=True)
+
+    # sportEntry = graphene.Field(SporteintragType)
+    ok = graphene.Boolean()
+
+    def mutate(self, info, id):
+        entry = Sporteintrag(pk=id)
+        showEntry = entry
+        entry.delete()
+        return DeleteSportEntry(ok=True)
 
 class MyMutations(graphene.ObjectType):
     create_sport_entry = CreateSportEntry.Field()
     Update_sport_entry = UpdateSportEntry.Field()
     create_exercise_entry = CreateExerciseEntry.Field()
     update_exercise_entry = UpdateExerciseEntry.Field()
+    delete_sport_entry = DeleteSportEntry.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=MyMutations)

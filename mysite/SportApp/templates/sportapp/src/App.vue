@@ -27,7 +27,9 @@
           <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
         </v-col>
         <v-col>
-          <v-toolbar-title class="mt-2 text-center">Application</v-toolbar-title>
+          <v-toolbar-title class="mt-2 text-center"
+            >Application</v-toolbar-title
+          >
         </v-col>
         <v-col class="text-right">
           <v-btn icon @click="addCard()">
@@ -56,20 +58,10 @@
 </template>
 
 <script>
-import ExerciseCard from "./components/ExerciseCard";
-import gql from "graphql-tag";
-import { CREATE } from "./queries/createSportEntry.js";
-import { GET_ENTRIES } from "./queries/allSportEntries.js";
-
-// const CREATE = gql`
-//   mutation {
-//     createSportEntry {
-//       sportEntry {
-//         dateOfEntry
-//       }
-//     }
-//   }
-// `;
+import ExerciseCard from './components/ExerciseCard';
+import gql from 'graphql-tag';
+import { CREATE } from './queries/createSportEntry.js';
+import { GET_ENTRIES } from './queries/allSportEntries.js';
 
 export default {
   props: {
@@ -80,30 +72,78 @@ export default {
   },
   data: () => ({
     drawer: null,
-    exampleData: []
+    exampleData: [],
+    allSporteintrag: []
   }),
+  created() {
+    async () => {
+      const trackedQueries =
+        JSON.parse(window.localStorage.getItem('trackedQueries') || null) || [];
+
+      const promises = trackedQueries.map(
+        ({ variables, query, context, operationName }) =>
+          this.$apollo.mutate({
+            context,
+            variables,
+            mutation: query,
+            update: console.log(operationName),
+            optimisticResponse: context.optimisticResponse
+          })
+      );
+
+      try {
+        await Promise.all(promises);
+      } catch (error) {
+        console.log(error);
+      }
+
+      window.localStorage.setItem('trackedQueries', []);
+    };
+  },
   methods: {
     addCard() {
-      this.$apollo.mutate({
-        mutation: CREATE,
-        variables: {},
-        update: (cache, { data: { createSportEntry } }) => {
-          try {
+      let nowISOstring = new Date().toISOString();
+      this.$apollo
+        .mutate({
+          mutation: CREATE,
+          variables: {
+            dateNow: nowISOstring
+          },
+          update: (cache, { data: { createSportEntry } }) => {
             const data = cache.readQuery({
               query: GET_ENTRIES
             });
-            const insertedCard = createSportEntry;
-            data.allSporteintrag.splice(0, 0, insertedCard[0]);
+            data.allSporteintrag.push(createSportEntry.sportEntry);
             cache.writeQuery({
               query: GET_ENTRIES,
               data
             });
-          } catch (e) {
-            // eslint-disable-next-line no-console
-            console.log(e);
+          },
+          optimisticResponse: {
+            createSportEntry: {
+              sportEntry: {
+                id: -1,
+                dateOfEntry: nowISOstring,
+                commentOfTheDay: 'optimisticComment',
+                uebungseintragSet: [],
+                category: {
+                  name: 'Pullup',
+                  __typename: 'KategorieType'
+                },
+                __typename: 'SporteintragType'
+              },
+              __typename: 'CreateSportEntry'
+            }
           }
-        }
-      });
+        })
+        .then(data => {
+          // Result
+          console.log(data);
+        })
+        .catch(error => {
+          // Error
+          console.error(error);
+        });
     }
   },
   apollo: {

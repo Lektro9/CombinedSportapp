@@ -13,11 +13,14 @@
       <v-btn icon @click="isEdit = !isEdit">
         <v-icon>mdi-dots-vertical</v-icon>
       </v-btn>
+      <v-btn icon color="red" @click="deleteCard()">
+        <v-icon dark>mdi-minus</v-icon>
+      </v-btn>
     </v-list-item>
 
     <v-card-title v-if="exerciseData.category != null">
       <v-icon large left>mdi-arm-flex</v-icon>
-      {{ exerciseData.category.name }}
+      {{ exerciseData.category.name }} {{ exerciseData.id }}
     </v-card-title>
 
     <!-- <v-card-text
@@ -41,14 +44,24 @@
       exerciseData.commentOfTheDay
       }}
     </v-card-text>-->
-    <v-textarea v-show="isEdit" filled auto-grow label="Two rows" rows="2" row-height="20"></v-textarea>
+    <v-textarea
+      v-show="isEdit"
+      filled
+      auto-grow
+      label="Two rows"
+      rows="2"
+      row-height="20"
+    ></v-textarea>
   </v-card>
 </template>
 
 <script>
+import { GET_ENTRIES } from '../queries/allSportEntries.js';
+import { DELETE_ENTRY } from '../queries/deleteSportEntry.js';
+
 export default {
-  name: "ExerciseCard",
-  props: ["exerciseData"],
+  name: 'ExerciseCard',
+  props: ['exerciseData'],
   data: () => ({
     isEdit: false
   }),
@@ -57,6 +70,45 @@ export default {
       // eslint-disable-next-line no-console
       console.log(this.$refs.test[index]);
       return this.$refs.test[index];
+    },
+    deleteCard() {
+      let currentID = this.exerciseData.id;
+      this.$apollo
+        .mutate({
+          mutation: DELETE_ENTRY,
+          variables: {
+            id: currentID
+          },
+          update: (cache, { data: { deleteSportEntry } }) => {
+            // logs 2 times because update gets executed 2 times (optimistic and actual)
+            console.log(deleteSportEntry);
+            const data = cache.readQuery({
+              query: GET_ENTRIES
+            });
+            data.allSporteintrag = data.allSporteintrag.filter(e => {
+              return e.id !== currentID;
+            });
+            console.log(data);
+            cache.writeQuery({
+              query: GET_ENTRIES,
+              data
+            });
+          },
+          optimisticResponse: {
+            deleteSportEntry: {
+              ok: true,
+              __typename: 'DeleteSportEntry'
+            }
+          }
+        })
+        .then(data => {
+          // Result
+          console.log(data);
+        })
+        .catch(error => {
+          // Error
+          console.error(error);
+        });
     }
   }
 };
