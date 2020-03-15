@@ -27,9 +27,7 @@
           <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
         </v-col>
         <v-col>
-          <v-toolbar-title class="mt-2 text-center"
-            >Application</v-toolbar-title
-          >
+          <v-toolbar-title class="mt-2 text-center">Application</v-toolbar-title>
         </v-col>
         <v-col class="text-right">
           <v-btn icon @click="addCard()">
@@ -40,17 +38,16 @@
     </v-app-bar>
 
     <v-content>
+      <v-btn icon @click="clearCache()">
+        <v-icon>mdi-refresh</v-icon>
+      </v-btn>
       <v-container fluid>
-        <v-row>
-          <v-col cols="12">
-            <v-row class="grey lighten-5" style="height: 300px;">
-              <exerciseCard
-                v-for="(exerciseCard, index) in allSporteintrag"
-                :key="index"
-                :exerciseData="exerciseCard"
-              />
-            </v-row>
-          </v-col>
+        <v-row class="grey lighten-5">
+          <exerciseCard
+            v-for="(exerciseCard, index) in allSporteintrag"
+            :key="index"
+            :exerciseData="exerciseCard"
+          />
         </v-row>
       </v-container>
     </v-content>
@@ -58,10 +55,10 @@
 </template>
 
 <script>
-import ExerciseCard from './components/ExerciseCard';
-import gql from 'graphql-tag';
-import { CREATE } from './queries/createSportEntry.js';
-import { GET_ENTRIES } from './queries/allSportEntries.js';
+import ExerciseCard from "./components/ExerciseCard";
+import gql from "graphql-tag";
+import { CREATE } from "./queries/createSportEntry.js";
+import { GET_ENTRIES } from "./queries/allSportEntries.js";
 
 export default {
   props: {
@@ -75,32 +72,16 @@ export default {
     exampleData: [],
     allSporteintrag: []
   }),
-  created() {
-    async () => {
-      const trackedQueries =
-        JSON.parse(window.localStorage.getItem('trackedQueries') || null) || [];
-
-      const promises = trackedQueries.map(
-        ({ variables, query, context, operationName }) =>
-          this.$apollo.mutate({
-            context,
-            variables,
-            mutation: query,
-            update: console.log(operationName),
-            optimisticResponse: context.optimisticResponse
-          })
-      );
-
-      try {
-        await Promise.all(promises);
-      } catch (error) {
-        console.log(error);
-      }
-
-      window.localStorage.setItem('trackedQueries', []);
-    };
-  },
+  created() {},
   methods: {
+    // this is for clearing cache and refetching it from the server (cache could become a problem after too much offline usage)
+    clearCache() {
+      Object.values(this.$apollo.provider.clients).forEach(client =>
+        client.cache.reset()
+      );
+      // this.allSporteintrag = [];
+      this.$apollo.queries.allSporteintrag.refresh();
+    },
     addCard() {
       let nowISOstring = new Date().toISOString();
       this.$apollo
@@ -124,16 +105,19 @@ export default {
               sportEntry: {
                 id: -1,
                 dateOfEntry: nowISOstring,
-                commentOfTheDay: 'optimisticComment',
+                commentOfTheDay: "optimisticComment",
                 uebungseintragSet: [],
                 category: {
-                  name: 'Pullup',
-                  __typename: 'KategorieType'
+                  name: "Pullup",
+                  __typename: "KategorieType"
                 },
-                __typename: 'SporteintragType'
+                __typename: "SporteintragType"
               },
-              __typename: 'CreateSportEntry'
+              __typename: "CreateSportEntry"
             }
+          },
+          context: {
+            serializationKey: "CARDS"
           }
         })
         .then(data => {

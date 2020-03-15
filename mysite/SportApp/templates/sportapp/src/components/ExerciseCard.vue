@@ -44,24 +44,17 @@
       exerciseData.commentOfTheDay
       }}
     </v-card-text>-->
-    <v-textarea
-      v-show="isEdit"
-      filled
-      auto-grow
-      label="Two rows"
-      rows="2"
-      row-height="20"
-    ></v-textarea>
+    <v-textarea v-show="isEdit" filled auto-grow label="Two rows" rows="2" row-height="20"></v-textarea>
   </v-card>
 </template>
 
 <script>
-import { GET_ENTRIES } from '../queries/allSportEntries.js';
-import { DELETE_ENTRY } from '../queries/deleteSportEntry.js';
+import { GET_ENTRIES } from "../queries/allSportEntries.js";
+import { DELETE_ENTRY } from "../queries/deleteSportEntry.js";
 
 export default {
-  name: 'ExerciseCard',
-  props: ['exerciseData'],
+  name: "ExerciseCard",
+  props: ["exerciseData"],
   data: () => ({
     isEdit: false
   }),
@@ -97,8 +90,11 @@ export default {
           optimisticResponse: {
             deleteSportEntry: {
               ok: true,
-              __typename: 'DeleteSportEntry'
+              __typename: "DeleteSportEntry"
             }
+          },
+          context: {
+            serializationKey: "CARDS"
           }
         })
         .then(data => {
