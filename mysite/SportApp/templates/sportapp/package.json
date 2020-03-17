@@ -24,6 +24,7 @@
     "vuetify": "^2.1.0"
   },
   "devDependencies": {
+    "@mdi/js": "^5.0.45",
     "@vue/cli-plugin-babel": "^4.0.0",
     "@vue/cli-plugin-eslint": "^4.0.0",
     "@vue/cli-plugin-pwa": "^4.2.3",

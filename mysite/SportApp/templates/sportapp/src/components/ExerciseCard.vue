@@ -5,21 +5,21 @@
     <v-list-item>
       <v-list-item-content>
         <div class="overline">
-          <v-icon>mdi-calendar</v-icon>
+          <v-icon>{{ calenderIcon }}</v-icon>
           {{ exerciseData.dateOfEntry }}
         </div>
       </v-list-item-content>
 
       <v-btn icon @click="isEdit = !isEdit">
-        <v-icon>mdi-dots-vertical</v-icon>
+        <v-icon>{{ moreIcon }}</v-icon>
       </v-btn>
       <v-btn icon color="red" @click="deleteCard()">
-        <v-icon dark>mdi-minus</v-icon>
+        <v-icon dark>{{ minusIcon }}</v-icon>
       </v-btn>
     </v-list-item>
 
     <v-card-title v-if="exerciseData.category != null">
-      <v-icon large left>mdi-arm-flex</v-icon>
+      <v-icon large left>{{ muscleIcon }}</v-icon>
       {{ exerciseData.category.name }} {{ exerciseData.id }}
     </v-card-title>
 
@@ -44,19 +44,31 @@
       exerciseData.commentOfTheDay
       }}
     </v-card-text>-->
-    <v-textarea v-show="isEdit" filled auto-grow label="Two rows" rows="2" row-height="20"></v-textarea>
+    <v-textarea
+      v-show="isEdit"
+      filled
+      auto-grow
+      label="Two rows"
+      rows="2"
+      row-height="20"
+    ></v-textarea>
   </v-card>
 </template>
 
 <script>
-import { GET_ENTRIES } from "../queries/allSportEntries.js";
-import { DELETE_ENTRY } from "../queries/deleteSportEntry.js";
+import { GET_ENTRIES } from '../queries/allSportEntries.js';
+import { DELETE_ENTRY } from '../queries/deleteSportEntry.js';
+import { mdiDotsVertical, mdiMinus, mdiCalendar, mdiArmFlex } from '@mdi/js';
 
 export default {
-  name: "ExerciseCard",
-  props: ["exerciseData"],
+  name: 'ExerciseCard',
+  props: ['exerciseData'],
   data: () => ({
-    isEdit: false
+    isEdit: false,
+    moreIcon: mdiDotsVertical,
+    minusIcon: mdiMinus,
+    calenderIcon: mdiCalendar,
+    muscleIcon: mdiArmFlex
   }),
   methods: {
     editMethod(index) {
@@ -90,11 +102,11 @@ export default {
           optimisticResponse: {
             deleteSportEntry: {
               ok: true,
-              __typename: "DeleteSportEntry"
+              __typename: 'DeleteSportEntry'
             }
           },
           context: {
-            serializationKey: "CARDS"
+            serializationKey: 'CARDS'
           }
         })
         .then(data => {

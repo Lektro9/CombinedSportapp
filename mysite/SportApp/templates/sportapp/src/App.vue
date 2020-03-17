@@ -27,11 +27,13 @@
           <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
         </v-col>
         <v-col>
-          <v-toolbar-title class="mt-2 text-center">Application</v-toolbar-title>
+          <v-toolbar-title class="mt-2 text-center"
+            >Application</v-toolbar-title
+          >
         </v-col>
         <v-col class="text-right">
           <v-btn icon @click="addCard()">
-            <v-icon>mdi-plus</v-icon>
+            <v-icon>{{ plusIcon }}</v-icon>
           </v-btn>
         </v-col>
       </v-row>
@@ -39,7 +41,13 @@
 
     <v-content>
       <v-btn icon @click="clearCache()">
-        <v-icon>mdi-refresh</v-icon>
+        <v-icon>{{ refreshIcon }}</v-icon>
+      </v-btn>
+      <v-btn icon @click="syncCards()">
+        <v-icon>{{ refreshIcon }}</v-icon>
+      </v-btn>
+      <v-btn icon @click="queryCache()">
+        <v-icon>{{ refreshIcon }}</v-icon>
       </v-btn>
       <v-container fluid>
         <v-row class="grey lighten-5">
@@ -55,10 +63,15 @@
 </template>
 
 <script>
-import ExerciseCard from "./components/ExerciseCard";
-import gql from "graphql-tag";
-import { CREATE } from "./queries/createSportEntry.js";
-import { GET_ENTRIES } from "./queries/allSportEntries.js";
+import ExerciseCard from './components/ExerciseCard';
+// import gql from "graphql-tag";
+import { CREATE } from './queries/createSportEntry.js';
+import { SYNC_CARD } from './queries/createSportEntry.js';
+import {
+  GET_ENTRIES,
+  GET_ENTRIES_FROM_SERVER
+} from './queries/allSportEntries.js';
+import { mdiRefresh, mdiPlus } from '@mdi/js';
 
 export default {
   props: {
@@ -70,7 +83,9 @@ export default {
   data: () => ({
     drawer: null,
     exampleData: [],
-    allSporteintrag: []
+    allSporteintrag: [],
+    refreshIcon: mdiRefresh,
+    plusIcon: mdiPlus
   }),
   created() {},
   methods: {
@@ -99,25 +114,6 @@ export default {
               query: GET_ENTRIES,
               data
             });
-          },
-          optimisticResponse: {
-            createSportEntry: {
-              sportEntry: {
-                id: -1,
-                dateOfEntry: nowISOstring,
-                commentOfTheDay: "optimisticComment",
-                uebungseintragSet: [],
-                category: {
-                  name: "Pullup",
-                  __typename: "KategorieType"
-                },
-                __typename: "SporteintragType"
-              },
-              __typename: "CreateSportEntry"
-            }
-          },
-          context: {
-            serializationKey: "CARDS"
           }
         })
         .then(data => {
@@ -128,30 +124,58 @@ export default {
           // Error
           console.error(error);
         });
+    },
+    syncCards() {
+      const offlineCards = this.allSporteintrag.filter(sportEntry => {
+        if (sportEntry.id < 0) {
+          return sportEntry;
+        }
+      });
+      console.log(offlineCards);
+      for (const index in offlineCards) {
+        this.$apollo
+          .mutate({
+            mutation: SYNC_CARD,
+            variables: {
+              dateNow: offlineCards[index].dateOfEntry
+            },
+            update: (cache, { data: { createSportEntry } }) => {
+              const data = cache.readQuery({
+                query: GET_ENTRIES
+              });
+              data.allSporteintrag = data.allSporteintrag.filter(sportEntry => {
+                if (sportEntry.id !== offlineCards[index].id) {
+                  return sportEntry;
+                }
+              });
+              data.allSporteintrag.push(createSportEntry.sportEntry);
+              cache.writeQuery({
+                query: GET_ENTRIES,
+                data
+              });
+            }
+          })
+          .then(data => {
+            // Result
+            console.log(data);
+          })
+          .catch(error => {
+            // Error
+            console.error(error);
+          });
+      }
     }
   },
   apollo: {
     // Simple query that will update the 'allSporteintrag' vue property
-    allSporteintrag: gql`
-      query {
-        allSporteintrag {
-          id
-          dateOfEntry
-          commentOfTheDay
-          category {
-            name
-          }
-          uebungseintragSet {
-            numberOfSets
-            numberOfReps
-            exercise {
-              name
-            }
-            isWorkout
-          }
-        }
-      }
-    `
+    allSporteintrag: {
+      query: GET_ENTRIES,
+      fetchPolicy: 'cache-first'
+    },
+    allSporteintragOnline: {
+      query: GET_ENTRIES_FROM_SERVER,
+      update: data => data.allSporteintrag
+    }
   }
 };
 </script>
