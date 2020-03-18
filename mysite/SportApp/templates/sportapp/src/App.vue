@@ -65,6 +65,7 @@ import {
   GET_ENTRIES_FROM_CACHE,
   GET_ENTRIES_FROM_SERVER
 } from "./queries/allSportEntries.js";
+import { DELETE_ENTRY } from "./queries/deleteSportEntry.js";
 import { mdiRefresh, mdiPlus } from "@mdi/js";
 
 export default {
@@ -138,7 +139,6 @@ export default {
           return sportEntry;
         }
       });
-      console.log(offlineCards);
       for (const index in offlineCards) {
         this.$apollo
           .mutate({
@@ -170,6 +170,42 @@ export default {
             // Error
             console.error(error);
           });
+      }
+      let markedDeletedCards = this.allSporteintrag.filter(sportEntry => {
+        if (sportEntry.markedDeleted) {
+          return sportEntry;
+        }
+      });
+      for (let card of markedDeletedCards) {
+        this.$apollo.mutate({
+          mutation: DELETE_ENTRY,
+          variables: {
+            id: card.id
+          },
+          update: (cache, { data: { deleteSportEntry } }) => {
+            // logs 2 times because update gets executed 2 times (optimistic and actual)
+            console.log(deleteSportEntry);
+            const data = cache.readQuery({
+              query: GET_ENTRIES_FROM_CACHE
+            });
+            data.allSporteintrag = data.allSporteintrag.filter(e => {
+              return e.id !== card.id;
+            });
+            cache.writeQuery({
+              query: GET_ENTRIES_FROM_CACHE,
+              data
+            });
+          },
+          optimisticResponse: {
+            deleteSportEntry: {
+              ok: true,
+              __typename: "DeleteSportEntry"
+            }
+          },
+          context: {
+            serializationKey: "CARDS"
+          }
+        });
       }
     }
   },
