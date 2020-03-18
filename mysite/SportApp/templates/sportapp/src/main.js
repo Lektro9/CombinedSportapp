@@ -11,7 +11,7 @@ import QueueLink from 'apollo-link-queue';
 import SerializingLink from 'apollo-link-serialize';
 import { ApolloLink } from 'apollo-link';
 import { gql } from 'apollo-boost';
-import { GET_ENTRIES } from './queries/allSportEntries.js';
+import { GET_ENTRIES_FROM_CACHE } from './queries/allSportEntries.js';
 
 import './registerServiceWorker';
 
@@ -76,32 +76,9 @@ async function willCreateProvider() {
 
 // stuff for locale state
 const typeDefs = gql`
-  type allSporteintrag {
-    id: ID!
-    dateOfEntry: String!
-    commentOfTheDay: String!
-    category: String
-    uebungseintragSet: [String]
+  extend type SporteintragType {
+    markedDeleted: Boolean
   }
-  # type category {
-  #   id: ID!
-  #   name: String!
-  # }
-  # type uebungseintragSet {
-  #   id: ID!
-  #   numberOfSets: Int!
-  #   numberOfReps: Int!
-  #   exercise: exercise
-  #   isWorkout: Boolean!
-  # }
-  # type exercise {
-  #   id: ID!
-  #   name: String!
-  #   level: Int!
-  # }
-  # type Mutation {
-  #   createSportEntry(dateNow: String!): allSporteintrag
-  # }
 `;
 
 cache.writeData({
@@ -112,8 +89,8 @@ cache.writeData({
 
 const resolvers = {
   Mutation: {
-    createSportEntry: (_, { createdAt }, { cache }) => {
-      const data = cache.readQuery({ query: GET_ENTRIES });
+    createSportEntryOffline: (_, { createdAt }, { cache }) => {
+      const data = cache.readQuery({ query: GET_ENTRIES_FROM_CACHE });
       const newEntry = {
         createSportEntry: {
           sportEntry: {
@@ -130,10 +107,30 @@ const resolvers = {
           __typename: 'CreateSportEntry'
         }
       };
+
       //not needed because the return already apends the new card
       //data.allSporteintrag.push(newEntry.createSportEntry.sportEntry);
-      cache.writeQuery({ query: GET_ENTRIES, data });
+      cache.writeQuery({ query: GET_ENTRIES_FROM_CACHE, data });
       return newEntry.createSportEntry;
+    },
+    deleteSportEntry: (_, { id }, { cache }) => {
+      console.log(id);
+      const data = cache.readQuery({ query: GET_ENTRIES_FROM_CACHE });
+      data.allSporteintrag.forEach(card => {
+        if (card.id === id) {
+          card.markedDeleted = !card.markedDeleted;
+        }
+      });
+      cache.writeQuery({
+        query: GET_ENTRIES_FROM_CACHE,
+        data
+      });
+      return null;
+    }
+  },
+  SporteintragType: {
+    markedDeleted() {
+      return false;
     }
   }
 };

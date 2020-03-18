@@ -1,6 +1,6 @@
 import { gql } from 'apollo-boost';
 
-export const GET_ENTRIES = gql`
+export const GET_ENTRIES_FROM_CACHE = gql`
   query {
     allSporteintrag @client {
       id
@@ -17,6 +17,7 @@ export const GET_ENTRIES = gql`
         }
         isWorkout
       }
+      markedDeleted @client
     }
   }
 `;
@@ -38,6 +39,7 @@ export const GET_ENTRIES_FROM_SERVER = gql`
         }
         isWorkout
       }
+      markedDeleted @client
     }
   }
 `;

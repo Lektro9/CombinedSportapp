@@ -13,6 +13,9 @@
       <v-btn icon @click="isEdit = !isEdit">
         <v-icon>{{ moreIcon }}</v-icon>
       </v-btn>
+      <v-btn icon color="red" @click="markDelete()">
+        <v-icon dark>{{ minusIcon }}</v-icon>
+      </v-btn>
       <v-btn icon color="red" @click="deleteCard()">
         <v-icon dark>{{ minusIcon }}</v-icon>
       </v-btn>
@@ -23,46 +26,23 @@
       {{ exerciseData.category.name }} {{ exerciseData.id }}
     </v-card-title>
 
-    <!-- <v-card-text
-      class="text--primary"
-      v-show="!isEdit"
-      v-for="(eEntry, index) in exerciseData.uebungseintragSet"
-      v-bind:key="index"
-    >
-      <div
-        v-if="eEntry.isWorkout==false"
-      >Warmup: {{ eEntry.numberOfSets }} x {{ eEntry.numberOfReps }} {{ eEntry.exercise.name }}</div>
-      <div v-if="eEntry.isWorkout==true">
-        Workout: {{ eEntry.numberOfSets }} x {{ eEntry.numberOfReps }}
-        {{ eEntry.exercise.name }}
-      </div>
-    </v-card-text>-->
-
     <v-divider></v-divider>
-    <!-- <v-card-text class="text--primary" v-show="!isEdit">
-      {{
-      exerciseData.commentOfTheDay
-      }}
-    </v-card-text>-->
-    <v-textarea
-      v-show="isEdit"
-      filled
-      auto-grow
-      label="Two rows"
-      rows="2"
-      row-height="20"
-    ></v-textarea>
+    <p v-if="exerciseData.markedDeleted === true">will be deleted</p>
+    <v-textarea v-show="isEdit" filled auto-grow label="Two rows" rows="2" row-height="20"></v-textarea>
   </v-card>
 </template>
 
 <script>
-import { GET_ENTRIES } from '../queries/allSportEntries.js';
-import { DELETE_ENTRY } from '../queries/deleteSportEntry.js';
-import { mdiDotsVertical, mdiMinus, mdiCalendar, mdiArmFlex } from '@mdi/js';
+import { GET_ENTRIES_FROM_CACHE } from "../queries/allSportEntries.js";
+import {
+  DELETE_ENTRY,
+  MARK_DELETE_ENTRY
+} from "../queries/deleteSportEntry.js";
+import { mdiDotsVertical, mdiMinus, mdiCalendar, mdiArmFlex } from "@mdi/js";
 
 export default {
-  name: 'ExerciseCard',
-  props: ['exerciseData'],
+  name: "ExerciseCard",
+  props: ["exerciseData"],
   data: () => ({
     isEdit: false,
     moreIcon: mdiDotsVertical,
@@ -76,6 +56,15 @@ export default {
       console.log(this.$refs.test[index]);
       return this.$refs.test[index];
     },
+    markDelete() {
+      let currentID = this.exerciseData.id;
+      this.$apollo.mutate({
+        mutation: MARK_DELETE_ENTRY,
+        variables: {
+          id: currentID
+        }
+      });
+    },
     deleteCard() {
       let currentID = this.exerciseData.id;
       this.$apollo
@@ -88,25 +77,25 @@ export default {
             // logs 2 times because update gets executed 2 times (optimistic and actual)
             console.log(deleteSportEntry);
             const data = cache.readQuery({
-              query: GET_ENTRIES
+              query: GET_ENTRIES_FROM_CACHE
             });
             data.allSporteintrag = data.allSporteintrag.filter(e => {
               return e.id !== currentID;
             });
             console.log(data);
             cache.writeQuery({
-              query: GET_ENTRIES,
+              query: GET_ENTRIES_FROM_CACHE,
               data
             });
           },
           optimisticResponse: {
             deleteSportEntry: {
               ok: true,
-              __typename: 'DeleteSportEntry'
+              __typename: "DeleteSportEntry"
             }
           },
           context: {
-            serializationKey: 'CARDS'
+            serializationKey: "CARDS"
           }
         })
         .then(data => {

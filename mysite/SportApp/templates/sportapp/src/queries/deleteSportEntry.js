@@ -7,3 +7,11 @@ export const DELETE_ENTRY = gql`
     }
   }
 `;
+
+export const MARK_DELETE_ENTRY = gql`
+  mutation($id: Int!) {
+    deleteSportEntry(id: $id) @client {
+      ok
+    }
+  }
+`;

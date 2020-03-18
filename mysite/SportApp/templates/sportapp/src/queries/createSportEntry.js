@@ -2,7 +2,7 @@ import { gql } from 'apollo-boost';
 
 export const CREATE = gql`
   mutation($dateNow: String!) {
-    createSportEntry(createdAt: $dateNow) @client {
+    createSportEntryOffline(createdAt: $dateNow) @client {
       sportEntry {
         id
         dateOfEntry
@@ -13,6 +13,7 @@ export const CREATE = gql`
         category {
           name
         }
+        markedDeleted @client
       }
     }
   }
@@ -31,6 +32,7 @@ export const SYNC_CARD = gql`
         category {
           name
         }
+        markedDeleted @client
       }
     }
   }

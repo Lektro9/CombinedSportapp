@@ -27,9 +27,7 @@
           <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
         </v-col>
         <v-col>
-          <v-toolbar-title class="mt-2 text-center"
-            >Application</v-toolbar-title
-          >
+          <v-toolbar-title class="mt-2 text-center">Application</v-toolbar-title>
         </v-col>
         <v-col class="text-right">
           <v-btn icon @click="addCard()">
@@ -40,13 +38,9 @@
     </v-app-bar>
 
     <v-content>
-      <v-btn icon @click="clearCache()">
-        <v-icon>{{ refreshIcon }}</v-icon>
-      </v-btn>
+      <v-btn text small @click="clearCache()">clear cache</v-btn>
+      <v-btn text small @click="fetchDataFromServer()">load serverdata</v-btn>
       <v-btn icon @click="syncCards()">
-        <v-icon>{{ refreshIcon }}</v-icon>
-      </v-btn>
-      <v-btn icon @click="queryCache()">
         <v-icon>{{ refreshIcon }}</v-icon>
       </v-btn>
       <v-container fluid>
@@ -63,15 +57,15 @@
 </template>
 
 <script>
-import ExerciseCard from './components/ExerciseCard';
+import ExerciseCard from "./components/ExerciseCard";
 // import gql from "graphql-tag";
-import { CREATE } from './queries/createSportEntry.js';
-import { SYNC_CARD } from './queries/createSportEntry.js';
+import { CREATE } from "./queries/createSportEntry.js";
+import { SYNC_CARD } from "./queries/createSportEntry.js";
 import {
-  GET_ENTRIES,
+  GET_ENTRIES_FROM_CACHE,
   GET_ENTRIES_FROM_SERVER
-} from './queries/allSportEntries.js';
-import { mdiRefresh, mdiPlus } from '@mdi/js';
+} from "./queries/allSportEntries.js";
+import { mdiRefresh, mdiPlus } from "@mdi/js";
 
 export default {
   props: {
@@ -87,15 +81,27 @@ export default {
     refreshIcon: mdiRefresh,
     plusIcon: mdiPlus
   }),
-  created() {},
+  created() {
+    this.$apollo.addSmartQuery("queryOnlineData", {
+      query: GET_ENTRIES_FROM_SERVER,
+      fetchPolicy: "network-only",
+      update: data => data.allSporteintrag,
+      skip: true
+    });
+    console.log(this.allSporteintrag);
+  },
   methods: {
     // this is for clearing cache and refetching it from the server (cache could become a problem after too much offline usage)
     clearCache() {
+      this.$apollo.queries.queryOnlineData.skip = true;
       Object.values(this.$apollo.provider.clients).forEach(client =>
-        client.cache.reset()
+        client.resetStore()
       );
-      // this.allSporteintrag = [];
-      this.$apollo.queries.allSporteintrag.refresh();
+      this.allSporteintrag = [];
+    },
+    fetchDataFromServer() {
+      this.$apollo.queries.queryOnlineData.skip = false;
+      this.$apollo.queries.queryOnlineData.refresh();
     },
     addCard() {
       let nowISOstring = new Date().toISOString();
@@ -105,13 +111,14 @@ export default {
           variables: {
             dateNow: nowISOstring
           },
-          update: (cache, { data: { createSportEntry } }) => {
+          update: (cache, { data: { createSportEntryOffline } }) => {
             const data = cache.readQuery({
-              query: GET_ENTRIES
+              query: GET_ENTRIES_FROM_CACHE
             });
-            data.allSporteintrag.push(createSportEntry.sportEntry);
+            console.log(data);
+            data.allSporteintrag.push(createSportEntryOffline.sportEntry);
             cache.writeQuery({
-              query: GET_ENTRIES,
+              query: GET_ENTRIES_FROM_CACHE,
               data
             });
           }
@@ -141,7 +148,7 @@ export default {
             },
             update: (cache, { data: { createSportEntry } }) => {
               const data = cache.readQuery({
-                query: GET_ENTRIES
+                query: GET_ENTRIES_FROM_SERVER
               });
               data.allSporteintrag = data.allSporteintrag.filter(sportEntry => {
                 if (sportEntry.id !== offlineCards[index].id) {
@@ -150,7 +157,7 @@ export default {
               });
               data.allSporteintrag.push(createSportEntry.sportEntry);
               cache.writeQuery({
-                query: GET_ENTRIES,
+                query: GET_ENTRIES_FROM_SERVER,
                 data
               });
             }
@@ -169,12 +176,8 @@ export default {
   apollo: {
     // Simple query that will update the 'allSporteintrag' vue property
     allSporteintrag: {
-      query: GET_ENTRIES,
-      fetchPolicy: 'cache-first'
-    },
-    allSporteintragOnline: {
-      query: GET_ENTRIES_FROM_SERVER,
-      update: data => data.allSporteintrag
+      query: GET_ENTRIES_FROM_CACHE,
+      fetchPolicy: "cache-first"
     }
   }
 };
