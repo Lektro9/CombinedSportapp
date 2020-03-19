@@ -10,21 +10,37 @@
         </div>
       </v-list-item-content>
 
-      <v-btn icon @click="isEdit = !isEdit">
-        <v-icon>{{ moreIcon }}</v-icon>
-      </v-btn>
-      <v-btn icon color="red" @click="markDelete()">
+      <!-- <v-btn icon color="red" @click="deleteCard()">
         <v-icon dark>{{ minusIcon }}</v-icon>
-      </v-btn>
-      <v-btn icon color="red" @click="deleteCard()">
-        <v-icon dark>{{ minusIcon }}</v-icon>
-      </v-btn>
+      </v-btn>-->
+
+      <v-menu offset-y>
+        <template v-slot:activator="{ on }">
+          <v-btn icon v-on="on">
+            <v-icon>{{ moreIcon }}</v-icon>
+          </v-btn>
+        </template>
+        <v-list dense>
+          <v-list-item @click="isEdit = !isEdit">
+            <v-list-item-title>Edit</v-list-item-title>
+          </v-list-item>
+          <v-list-item @click="markDelete()">
+            <v-list-item-title>Delete</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
     </v-list-item>
 
     <v-card-title v-if="exerciseData.category != null">
       <v-icon large left>{{ muscleIcon }}</v-icon>
       {{ exerciseData.category.name }} {{ exerciseData.id }}
     </v-card-title>
+
+    <ActualExercises
+      :exercises="exerciseData.uebungseintragSet"
+      :isEdit="isEdit"
+      :cardID="exerciseData.id"
+    />
 
     <v-divider></v-divider>
     <p v-if="exerciseData.markedDeleted === true">will be deleted</p>
@@ -33,6 +49,7 @@
 </template>
 
 <script>
+import ActualExercises from "./ActualExercises";
 import { GET_ENTRIES_FROM_CACHE } from "../queries/allSportEntries.js";
 import {
   DELETE_ENTRY,
@@ -43,6 +60,9 @@ import { mdiDotsVertical, mdiMinus, mdiCalendar, mdiArmFlex } from "@mdi/js";
 export default {
   name: "ExerciseCard",
   props: ["exerciseData"],
+  components: {
+    ActualExercises
+  },
   data: () => ({
     isEdit: false,
     moreIcon: mdiDotsVertical,

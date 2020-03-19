@@ -64,7 +64,12 @@ const link = ApolloLink.from([
 // }
 
 const cache = new InMemoryCache({
-  dataIdFromObject: object => object.id
+  dataIdFromObject: object => {
+    if (object.name) {
+      return object.name;
+    }
+    return object.id;
+  }
 });
 
 async function willCreateProvider() {
@@ -90,7 +95,8 @@ cache.writeData({
 const resolvers = {
   Mutation: {
     createSportEntryOffline: (_, { createdAt }, { cache }) => {
-      const data = cache.readQuery({ query: GET_ENTRIES_FROM_CACHE });
+      // const data = cache.readQuery({ query: GET_ENTRIES_FROM_CACHE });
+      console.log(cache);
       const newEntry = {
         createSportEntry: {
           sportEntry: {
@@ -108,13 +114,12 @@ const resolvers = {
         }
       };
 
-      //not needed because the return already apends the new card
+      //not needed because the return already apends the new card, or maybe it's the update function ...
       //data.allSporteintrag.push(newEntry.createSportEntry.sportEntry);
-      cache.writeQuery({ query: GET_ENTRIES_FROM_CACHE, data });
+      //cache.writeQuery({ query: GET_ENTRIES_FROM_CACHE, data });
       return newEntry.createSportEntry;
     },
     deleteSportEntry: (_, { id }, { cache }) => {
-      console.log(id);
       const data = cache.readQuery({ query: GET_ENTRIES_FROM_CACHE });
       data.allSporteintrag.forEach(card => {
         if (card.id === id) {
@@ -126,6 +131,25 @@ const resolvers = {
         data
       });
       return null;
+    },
+    // throws a "Missing field exerciseEntry" warning which drives me crazy
+    createExerciseEntry: (_, { isWorkout, sportEntryId }) => {
+      let newSet = {
+        id: -1,
+        numberOfSets: 2,
+        numberOfReps: 10,
+        exercise: {
+          id: 2,
+          name: 'WallPushups',
+          __typename: 'UebungType'
+        },
+        sportEntry: {
+          id: sportEntryId
+        },
+        isWorkout: isWorkout,
+        __typename: 'UebungseintragType'
+      };
+      return newSet;
     }
   },
   SporteintragType: {

@@ -95,6 +95,21 @@ class UpdateSportEntry(graphene.Mutation):
         entry.save()
         return UpdateSportEntry(entry=entry)
 
+class CreateExercise(graphene.Mutation):
+    class Arguments:
+        category_id = graphene.ID(required=True)
+        nameOfEx = graphene.String(required=True)
+        levelOfDi = graphene.Int(required=True)
+
+    exercise = graphene.Field(UebungType)
+
+    def mutate(self, info, category_id, nameOfEx, levelOfDi):
+        category = Kategorie.objects.get(pk=category_id)
+        name = nameOfEx
+        level = levelOfDi
+        exercise = Uebung(category=category, name=name, level=level)
+        exercise.save()
+        return CreateExercise(exercise=exercise)
 
 class CreateExerciseEntry(graphene.Mutation):
     class Arguments:
@@ -113,15 +128,15 @@ class CreateExerciseEntry(graphene.Mutation):
 
 class UpdateExerciseEntry(graphene.Mutation):
     class Arguments:
-        id = graphene.ID()
+        exercise_entry_id = graphene.ID()
         numberOfSets = graphene.Int()
         numberOfReps = graphene.Int()
         exercise_id = graphene.ID()
 
     exerciseEntry = graphene.Field(UebungseintragType)
 
-    def mutate(self, info, id, numberOfSets, numberOfReps, exercise_id):
-        exerciseEntry = Uebungseintrag.objects.get(pk=id)
+    def mutate(self, info, exercise_entry_id, numberOfSets, numberOfReps, exercise_id):
+        exerciseEntry = Uebungseintrag.objects.get(pk=exercise_entry_id)
         exerciseEntry.numberOfSets = numberOfSets
         exerciseEntry.numberOfReps = numberOfReps
         exerciseEntry.exercise = Uebung.objects.get(pk=exercise_id)
@@ -148,6 +163,7 @@ class MyMutations(graphene.ObjectType):
     create_exercise_entry = CreateExerciseEntry.Field()
     update_exercise_entry = UpdateExerciseEntry.Field()
     delete_sport_entry = DeleteSportEntry.Field()
+    create_exercise = CreateExercise.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=MyMutations)

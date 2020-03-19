@@ -41,5 +41,9 @@ export const GET_ENTRIES_FROM_SERVER = gql`
       }
       markedDeleted @client
     }
+    allKategorie {
+      id
+      name
+    }
   }
 `;

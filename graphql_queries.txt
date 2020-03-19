@@ -94,7 +94,29 @@ mutation updateExerciseEntry {
 }
 
 	
-	
+mutation newExEn($work: Boolean, $spEn: ID) {
+  createExerciseEntry(isWorkout: $work, sportEntryId: $spEn){
+    exerciseEntry{
+      id
+      exercise {
+        id
+        name
+      }
+      isWorkout
+    }
+  }
+}
+
+mutation ($exerciseId: ID, $exerciseEntryId: ID, $numberOfReps: Int, $numberOfSets: Int) {
+  updateExerciseEntry(exerciseId: $exerciseId, exerciseEntryId: $exerciseEntryId, numberOfReps: $numberOfReps, numberOfSets: $numberOfSets) {
+    exerciseEntry {
+      numberOfSets
+      numberOfReps
+      isWorkout
+    }
+  }
+}
+
 	
 	
 	
