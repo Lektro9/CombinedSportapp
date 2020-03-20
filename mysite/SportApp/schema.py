@@ -125,6 +125,17 @@ class CreateExerciseEntry(graphene.Mutation):
         exerciseEntry.save()
         return CreateExerciseEntry(exerciseEntry=exerciseEntry)
 
+class DeleteExerciseEntry(graphene.Mutation):
+    class Arguments:
+        id = graphene.Int(required=True)
+
+    retID = graphene.Int()
+
+    def mutate(self, info, id):
+        exerciseEntry = Uebungseintrag.objects.get(pk=id)
+        exerciseEntry.delete()
+        return DeleteExerciseEntry(retID=id)
+
 
 class UpdateExerciseEntry(graphene.Mutation):
     class Arguments:
@@ -153,7 +164,6 @@ class DeleteSportEntry(graphene.Mutation):
 
     def mutate(self, info, id):
         entry = Sporteintrag(pk=id)
-        showEntry = entry
         entry.delete()
         return DeleteSportEntry(ok=True)
 
@@ -164,6 +174,7 @@ class MyMutations(graphene.ObjectType):
     update_exercise_entry = UpdateExerciseEntry.Field()
     delete_sport_entry = DeleteSportEntry.Field()
     create_exercise = CreateExercise.Field()
+    delete_exercise_entry = DeleteExerciseEntry.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=MyMutations)

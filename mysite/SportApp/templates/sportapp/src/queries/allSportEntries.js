@@ -7,12 +7,15 @@ export const GET_ENTRIES_FROM_CACHE = gql`
       dateOfEntry
       commentOfTheDay
       category {
+        id
         name
       }
       uebungseintragSet {
+        id
         numberOfSets
         numberOfReps
         exercise {
+          id
           name
         }
         isWorkout
@@ -29,12 +32,15 @@ export const GET_ENTRIES_FROM_SERVER = gql`
       dateOfEntry
       commentOfTheDay
       category {
+        id
         name
       }
       uebungseintragSet {
+        id
         numberOfSets
         numberOfReps
         exercise {
+          id
           name
         }
         isWorkout

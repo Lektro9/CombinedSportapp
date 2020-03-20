@@ -11,6 +11,7 @@ export const CREATE = gql`
           id
         }
         category {
+          id
           name
         }
         markedDeleted @client
@@ -30,6 +31,7 @@ export const SYNC_CARD = gql`
           id
         }
         category {
+          id
           name
         }
         markedDeleted @client

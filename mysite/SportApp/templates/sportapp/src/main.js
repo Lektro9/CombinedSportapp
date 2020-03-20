@@ -64,12 +64,12 @@ const link = ApolloLink.from([
 // }
 
 const cache = new InMemoryCache({
-  dataIdFromObject: object => {
-    if (object.name) {
-      return object.name;
-    }
-    return object.id;
-  }
+  // dataIdFromObject: object => {
+  //   if (object.name) {
+  //     return object.name;
+  //   }
+  //   return object.id;
+  // }
 });
 
 async function willCreateProvider() {
@@ -105,6 +105,7 @@ const resolvers = {
             commentOfTheDay: 'offlineCreated',
             uebungseintragSet: [],
             category: {
+              id: 2,
               name: 'Pullup-offline',
               __typename: 'KategorieType'
             },
@@ -135,7 +136,7 @@ const resolvers = {
     // throws a "Missing field exerciseEntry" warning which drives me crazy
     createExerciseEntry: (_, { isWorkout, sportEntryId }) => {
       let newSet = {
-        id: -1,
+        id: -Date.now(),
         numberOfSets: 2,
         numberOfReps: 10,
         exercise: {
@@ -144,12 +145,20 @@ const resolvers = {
           __typename: 'UebungType'
         },
         sportEntry: {
-          id: sportEntryId
+          id: sportEntryId,
+          __typename: 'SporteintragType'
         },
         isWorkout: isWorkout,
         __typename: 'UebungseintragType'
       };
       return newSet;
+    },
+    deleteExerciseEntryOffline: (_, { id }) => {
+      let deletedEntry = {
+        id: id,
+        __typename: 'notImportant'
+      };
+      return deletedEntry;
     }
   },
   SporteintragType: {
