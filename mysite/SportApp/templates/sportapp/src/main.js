@@ -3,15 +3,29 @@ import App from './App.vue';
 import vuetify from './plugins/vuetify';
 import ApolloClient from 'apollo-client';
 import VueApollo from 'vue-apollo';
-import { InMemoryCache } from 'apollo-cache-inmemory';
-import { persistCache } from 'apollo-cache-persist';
-import { HttpLink } from 'apollo-link-http';
-import { RetryLink } from 'apollo-link-retry';
+import {
+  InMemoryCache
+} from 'apollo-cache-inmemory';
+import {
+  persistCache
+} from 'apollo-cache-persist';
+import {
+  HttpLink
+} from 'apollo-link-http';
+import {
+  RetryLink
+} from 'apollo-link-retry';
 import QueueLink from 'apollo-link-queue';
 import SerializingLink from 'apollo-link-serialize';
-import { ApolloLink } from 'apollo-link';
-import { gql } from 'apollo-boost';
-import { GET_ENTRIES_FROM_CACHE } from './queries/allSportEntries.js';
+import {
+  ApolloLink
+} from 'apollo-link';
+import {
+  gql
+} from 'apollo-boost';
+import {
+  GET_ENTRIES_FROM_CACHE
+} from './queries/allSportEntries.js';
 
 import './registerServiceWorker';
 
@@ -80,7 +94,7 @@ async function willCreateProvider() {
 }
 
 // stuff for locale state
-const typeDefs = gql`
+const typeDefs = gql `
   extend type SporteintragType {
     markedDeleted: Boolean
   }
@@ -94,7 +108,11 @@ cache.writeData({
 
 const resolvers = {
   Mutation: {
-    createSportEntryOffline: (_, { createdAt }, { cache }) => {
+    createSportEntryOffline: (_, {
+      createdAt
+    }, {
+      cache
+    }) => {
       // const data = cache.readQuery({ query: GET_ENTRIES_FROM_CACHE });
       console.log(cache);
       const newEntry = {
@@ -120,8 +138,14 @@ const resolvers = {
       //cache.writeQuery({ query: GET_ENTRIES_FROM_CACHE, data });
       return newEntry.createSportEntry;
     },
-    deleteSportEntry: (_, { id }, { cache }) => {
-      const data = cache.readQuery({ query: GET_ENTRIES_FROM_CACHE });
+    deleteSportEntry: (_, {
+      id
+    }, {
+      cache
+    }) => {
+      const data = cache.readQuery({
+        query: GET_ENTRIES_FROM_CACHE
+      });
       data.allSporteintrag.forEach(card => {
         if (card.id === id) {
           card.markedDeleted = !card.markedDeleted;
@@ -134,14 +158,21 @@ const resolvers = {
       return null;
     },
     // throws a "Missing field exerciseEntry" warning which drives me crazy
-    createExerciseEntry: (_, { isWorkout, sportEntryId }) => {
+    createExerciseEntry: (_, {
+      isWorkout,
+      sportEntryId,
+      sets,
+      reps,
+      exID,
+      exName
+    }) => {
       let newSet = {
         id: -Date.now(),
-        numberOfSets: 2,
-        numberOfReps: 10,
+        numberOfSets: sets,
+        numberOfReps: reps,
         exercise: {
-          id: 2,
-          name: 'WallPushups',
+          id: exID,
+          name: exName,
           __typename: 'UebungType'
         },
         sportEntry: {
@@ -153,7 +184,9 @@ const resolvers = {
       };
       return newSet;
     },
-    deleteExerciseEntryOffline: (_, { id }) => {
+    deleteExerciseEntryOffline: (_, {
+      id
+    }) => {
       let deletedEntry = {
         id: id,
         __typename: 'notImportant'

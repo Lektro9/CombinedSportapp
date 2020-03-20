@@ -231,3 +231,14 @@ export default {
   }
 };
 </script>
+
+<style>
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.v-text-field.v-text-field--enclosed > .v-input__control > .v-input__slot {
+  padding: 0;
+}
+</style>

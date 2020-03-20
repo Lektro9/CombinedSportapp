@@ -1,8 +1,10 @@
-import { gql } from 'apollo-boost';
+import {
+  gql
+} from 'apollo-boost';
 
-export const CREATE_EXERCISE_ENTRY = gql`
-  mutation newExEn($work: Boolean, $spEn: ID) {
-    createExerciseEntry(isWorkout: $work, sportEntryId: $spEn) @client {
+export const CREATE_EXERCISE_ENTRY = gql `
+  mutation newExEn($work: Boolean, $spEn: ID, $sets: Int, $reps: Int, $exID: Int, $exName: String) {
+    createExerciseEntry(isWorkout: $work, sportEntryId: $spEn, sets: $sets, reps: $reps, exID: $exID, exName: $exName) @client {
       id
       numberOfSets
       numberOfReps

@@ -11,10 +11,45 @@
         </v-btn>
       </div>
     </div>
-    <v-btn icon small color="green" v-if="isEdit" @click="newEntry = !newEntry">
+    <v-btn icon small color="green" v-if="isEdit" @click="newEntryFieldWarm = !newEntryFieldWarm">
       <v-icon>{{ plusIcon }}</v-icon>
     </v-btn>
-    <v-overflow-btn v-if="newEntry" dense :items="getExerciseName" label="Exercise"></v-overflow-btn>
+    <v-container fluid>
+      <v-row align="center" v-if="newEntryFieldWarm">
+        <v-text-field
+          :hide-details="true"
+          solo
+          dense
+          class="smallnumber mr-2"
+          type="number"
+          v-model="newEntryObj.sets"
+        ></v-text-field>
+        <v-icon class="mr-2">{{ timesIcon }}</v-icon>
+        <v-text-field
+          :hide-details="true"
+          solo
+          dense
+          class="smallnumber mr-2"
+          type="number"
+          v-model="newEntryObj.reps"
+        ></v-text-field>
+        <v-select
+          :hide-details="true"
+          dense
+          item-text="name"
+          :items="possibleChoices"
+          item-value="id"
+          @change="setExName"
+          label="Exercise"
+          class="mr-2 pa-0"
+          solo
+          v-model="newEntryObj.exID"
+        ></v-select>
+        <v-btn icon small @click="createExerciseEntry(false, newEntryObj)">
+          <v-icon>{{ checkIcon }}</v-icon>
+        </v-btn>
+      </v-row>
+    </v-container>
     <div>Workout:</div>
     <div v-for="(exercise, index) in exercises" :key="index + 'work'">
       <div v-if="exercise.isWorkout">
@@ -26,14 +61,50 @@
         </v-btn>
       </div>
     </div>
-    <v-btn icon small color="green" v-if="isEdit" @click="createExerciseEntry(true)">
+    <v-btn icon small color="green" v-if="isEdit" @click="newEntryFieldWork = !newEntryFieldWork">
       <v-icon>{{ plusIcon }}</v-icon>
     </v-btn>
+    <v-container fluid>
+      <v-row align="center" v-if="newEntryFieldWork">
+        <v-text-field
+          :hide-details="true"
+          solo
+          dense
+          class="smallnumber mr-2"
+          type="number"
+          v-model="newEntryObj.sets"
+        ></v-text-field>
+        <v-icon class="mr-2">{{ timesIcon }}</v-icon>
+        <v-text-field
+          :hide-details="true"
+          solo
+          dense
+          class="smallnumber mr-2"
+          type="number"
+          v-model="newEntryObj.reps"
+        ></v-text-field>
+        <v-select
+          :hide-details="true"
+          dense
+          item-text="name"
+          :items="possibleChoices"
+          item-value="id"
+          @change="setExName"
+          label="Exercise"
+          class="mr-2 pa-0"
+          solo
+          v-model="newEntryObj.exID"
+        ></v-select>
+        <v-btn icon small @click="createExerciseEntry(true, newEntryObj)">
+          <v-icon>{{ checkIcon }}</v-icon>
+        </v-btn>
+      </v-row>
+    </v-container>
   </div>
 </template>
 
 <script>
-import { mdiPlus, mdiMinus } from "@mdi/js";
+import { mdiPlus, mdiMinus, mdiClose, mdiCheck } from "@mdi/js";
 import { CREATE_EXERCISE_ENTRY } from "../queries/createExerciseEntry.js";
 import {
   DELETE_OFFLINE_EXENTRY,
@@ -46,25 +117,44 @@ export default {
   data: () => ({
     plusIcon: mdiPlus,
     minusIcon: mdiMinus,
-    newEntry: false
+    timesIcon: mdiClose,
+    checkIcon: mdiCheck,
+    newEntryFieldWarm: false,
+    newEntryFieldWork: false,
+    newEntryObj: { sets: 0, reps: 0, exID: 0, exName: "" }
   }),
   computed: {
     getExerciseName() {
+      console.log(this.possibleChoices);
       let names = [];
       for (let name of this.possibleChoices) {
         names.push(name.name);
       }
-      console.log(names);
       return names;
     }
   },
   methods: {
-    createExerciseEntry(isWorkout) {
+    setExName(id) {
+      this.possibleChoices.forEach(choice => {
+        if (choice.id == id) {
+          this.newEntryObj.exName = choice.name;
+        }
+      });
+      console.log(this.newEntryObj.exName);
+    },
+    createExerciseEntry(isWorkout, newEntry) {
+      this.newEntryFieldWarm = false;
+      this.newEntryFieldWork = false;
+      console.log(newEntry);
       this.$apollo.mutate({
         mutation: CREATE_EXERCISE_ENTRY,
         variables: {
           work: isWorkout,
-          spEn: this.cardID
+          spEn: this.cardID,
+          sets: newEntry.sets,
+          reps: newEntry.reps,
+          exID: newEntry.exID,
+          exName: newEntry.exName
         },
         update: (cache, { data: { createExerciseEntry } }) => {
           const data = cache.readQuery({
@@ -158,6 +248,11 @@ export default {
 
 <style lang="css" scoped>
 .v-input {
-  max-width: 50%;
+  max-width: 40%;
+}
+
+.smallnumber {
+  max-width: 10%;
+  -webkit-appearance: none;
 }
 </style>

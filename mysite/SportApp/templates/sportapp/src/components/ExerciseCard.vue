@@ -1,38 +1,37 @@
 /* eslint-disable */
 <template>
-  <v-card class="ma-3 pa-6" width="300" height="350" elevation="10" raised>
+  <v-card class="ma-3 pa-4" width="300" height="350" elevation="10" raised>
     <!-- TODO: Cool Background image -->
-    <v-list-item-content>
-      <div class="overline">
-        <v-icon>{{ calenderIcon }}</v-icon>
-        {{ exerciseData.dateOfEntry }}
-      </div>
-    </v-list-item-content>
+    <v-row justify="space-between" class="pa-2">
+      <v-icon class="calicon">{{ calenderIcon }}</v-icon>
+      <div class="date">{{ readableDate }}</div>
 
+      <v-menu offset-y class="moreicon">
+        <template v-slot:activator="{ on }">
+          <v-btn icon v-on="on">
+            <v-icon>{{ moreIcon }}</v-icon>
+          </v-btn>
+        </template>
+        <v-list dense>
+          <v-list-item @click="isEdit = !isEdit">
+            <v-list-item-title>Edit</v-list-item-title>
+          </v-list-item>
+          <v-list-item @click="markDelete()">
+            <v-list-item-title>Delete</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+    </v-row>
     <!-- <v-btn icon color="red" @click="deleteCard()">
         <v-icon dark>{{ minusIcon }}</v-icon>
     </v-btn>-->
 
-    <v-menu offset-y>
-      <template v-slot:activator="{ on }">
-        <v-btn icon v-on="on">
-          <v-icon>{{ moreIcon }}</v-icon>
-        </v-btn>
-      </template>
-      <v-list dense>
-        <v-list-item @click="isEdit = !isEdit">
-          <v-list-item-title>Edit</v-list-item-title>
-        </v-list-item>
-        <v-list-item @click="markDelete()">
-          <v-list-item-title>Delete</v-list-item-title>
-        </v-list-item>
-      </v-list>
-    </v-menu>
-
-    <v-card-title v-if="exerciseData.category != null">
-      <v-icon large left>{{ muscleIcon }}</v-icon>
-      {{ exerciseData.category.name }} {{ exerciseData.id }}
-    </v-card-title>
+    <v-row justify="center">
+      <v-card-title v-if="exerciseData.category != null" class="pa-0 ma-0" justify="center">
+        <v-icon large left>{{ muscleIcon }}</v-icon>
+        {{ exerciseData.category.name }} {{ exerciseData.id }}
+      </v-card-title>
+    </v-row>
 
     <ActualExercises
       :exercises="exerciseData.uebungseintragSet"
@@ -69,7 +68,8 @@ export default {
     minusIcon: mdiMinus,
     calenderIcon: mdiCalendar,
     muscleIcon: mdiArmFlex,
-    possibleChoices: []
+    possibleChoices: [],
+    readableDate: ""
   }),
   created() {
     this.allUebung.filter(uebung => {
@@ -77,6 +77,12 @@ export default {
         this.possibleChoices.push(uebung);
       }
     });
+    let cardDate = new Date(this.exerciseData.dateOfEntry);
+    let dayName = cardDate.toString().split(" ")[0];
+    let day = cardDate.getDate();
+    let month = cardDate.getMonth() + 1;
+    let year = cardDate.getYear() + 1900;
+    this.readableDate = dayName + " " + day + "." + month + "." + year;
   },
   methods: {
     editMethod(index) {
@@ -148,5 +154,16 @@ export default {
   height: 20px;
   font-size: 8pt;
   margin: 0px 0px 0px;
+}
+.moreicon {
+  max-width: 20%;
+}
+
+.date {
+  max-width: 40%;
+}
+
+.calicon {
+  max-width: 20%;
 }
 </style>
