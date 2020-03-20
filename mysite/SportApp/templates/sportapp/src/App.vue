@@ -49,6 +49,7 @@
             v-for="(exerciseCard, index) in allSporteintrag"
             :key="index"
             :exerciseData="exerciseCard"
+            :allUebung="allUebung"
           />
         </v-row>
       </v-container>
@@ -66,6 +67,7 @@ import {
   GET_ENTRIES_FROM_SERVER
 } from "./queries/allSportEntries.js";
 import { DELETE_ENTRY } from "./queries/deleteSportEntry.js";
+import { GET_ALLUEBUNG } from "./queries/allUebung.js";
 import { mdiRefresh, mdiPlus } from "@mdi/js";
 
 export default {
@@ -89,7 +91,14 @@ export default {
       update: data => data.allSporteintrag,
       skip: true
     });
+    this.$apollo.addSmartQuery("allUebungServer", {
+      query: GET_ALLUEBUNG,
+      fetchPolicy: "network-only",
+      update: data => data.allUebung,
+      skip: true
+    });
     console.log(this.allSporteintrag);
+    console.log(this.allUebung);
   },
   methods: {
     // this is for clearing cache and refetching it from the server (cache could become a problem after too much offline usage)
@@ -213,6 +222,10 @@ export default {
     // Simple query that will update the 'allSporteintrag' vue property
     allSporteintrag: {
       query: GET_ENTRIES_FROM_CACHE,
+      fetchPolicy: "cache-first"
+    },
+    allUebung: {
+      query: GET_ALLUEBUNG,
       fetchPolicy: "cache-first"
     }
   }

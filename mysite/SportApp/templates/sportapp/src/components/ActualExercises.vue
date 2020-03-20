@@ -11,9 +11,10 @@
         </v-btn>
       </div>
     </div>
-    <v-btn icon small color="green" v-if="isEdit" @click="createExerciseEntry(false)">
+    <v-btn icon small color="green" v-if="isEdit" @click="newEntry = !newEntry">
       <v-icon>{{ plusIcon }}</v-icon>
     </v-btn>
+    <v-overflow-btn v-if="newEntry" dense :items="getExerciseName" label="Exercise"></v-overflow-btn>
     <div>Workout:</div>
     <div v-for="(exercise, index) in exercises" :key="index + 'work'">
       <div v-if="exercise.isWorkout">
@@ -41,11 +42,22 @@ import {
 import { GET_ENTRIES_FROM_CACHE } from "../queries/allSportEntries.js";
 export default {
   name: "ActualExercises",
-  props: ["exercises", "isEdit", "cardID"],
+  props: ["exercises", "isEdit", "cardID", "category", "possibleChoices"],
   data: () => ({
     plusIcon: mdiPlus,
-    minusIcon: mdiMinus
+    minusIcon: mdiMinus,
+    newEntry: false
   }),
+  computed: {
+    getExerciseName() {
+      let names = [];
+      for (let name of this.possibleChoices) {
+        names.push(name.name);
+      }
+      console.log(names);
+      return names;
+    }
+  },
   methods: {
     createExerciseEntry(isWorkout) {
       this.$apollo.mutate({
@@ -143,3 +155,9 @@ export default {
   }
 };
 </script>
+
+<style lang="css" scoped>
+.v-input {
+  max-width: 50%;
+}
+</style>

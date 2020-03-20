@@ -38,6 +38,8 @@
       :exercises="exerciseData.uebungseintragSet"
       :isEdit="isEdit"
       :cardID="exerciseData.id"
+      :category="exerciseData.category"
+      :possibleChoices="possibleChoices"
     />
 
     <v-divider></v-divider>
@@ -57,7 +59,7 @@ import { mdiDotsVertical, mdiMinus, mdiCalendar, mdiArmFlex } from "@mdi/js";
 
 export default {
   name: "ExerciseCard",
-  props: ["exerciseData"],
+  props: ["exerciseData", "allUebung"],
   components: {
     ActualExercises
   },
@@ -66,8 +68,16 @@ export default {
     moreIcon: mdiDotsVertical,
     minusIcon: mdiMinus,
     calenderIcon: mdiCalendar,
-    muscleIcon: mdiArmFlex
+    muscleIcon: mdiArmFlex,
+    possibleChoices: []
   }),
+  created() {
+    this.allUebung.filter(uebung => {
+      if (uebung.category.name === this.exerciseData.category.name) {
+        this.possibleChoices.push(uebung);
+      }
+    });
+  },
   methods: {
     editMethod(index) {
       // eslint-disable-next-line no-console
