@@ -123,8 +123,8 @@ const resolvers = {
             commentOfTheDay: 'offlineCreated',
             uebungseintragSet: [],
             category: {
-              id: 2,
-              name: 'Pullup-offline',
+              id: 1,
+              name: 'Pushups',
               __typename: 'KategorieType'
             },
             __typename: 'SporteintragType'

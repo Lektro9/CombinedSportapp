@@ -55,6 +55,51 @@ class Query(graphene.ObjectType):
 
 # Mutations:
 
+class UebungsEintrag(graphene.InputObjectType):
+    numberOfSets = graphene.Int()
+    numberOfReps = graphene.Int()
+    workout = graphene.Boolean()
+    uebungsID = graphene.ID()
+
+class SportCard(graphene.InputObjectType):
+    id = graphene.ID()
+    createdAt = graphene.String(required=True)
+    comment = graphene.String()
+    categoryID = graphene.ID(required=True)
+    listOfSets = graphene.List(UebungsEintrag)
+
+class CreateOrUpdateCard(graphene.Mutation):
+    class Arguments:
+        sportCard = SportCard(required=True)
+
+    newOrExistingSportCard = graphene.Field(SporteintragType)
+
+    def mutate(self, info, sportCard):
+        if sportCard.id is not None:
+            newOrExistingSportCard = Sporteintrag.objects.get(pk=sportCard.id)
+            newOrExistingSportCard.dateOfEntry = datetime.strptime(sportCard.createdAt, "%Y-%m-%dT%H:%M:%S.%fz")
+            if sportCard.comment is not None:
+                newOrExistingSportCard.commentOfTheDay = sportCard.comment
+            if sportCard.listOfSets is not None:
+                for exerciseSet in sportCard.listOfSets:
+                    exercise = Uebung.objects.get(pk=exerciseSet.uebungsID)
+                    exerciseEntry = Uebungseintrag(sportEntry=newOrExistingSportCard, isWorkout=exerciseSet.workout, numberOfSets=exerciseSet.numberOfSets, numberOfReps=exerciseSet.numberOfReps, exercise=exercise)
+                    exerciseEntry.save()
+            newOrExistingSportCard.save()
+
+        else:
+            newOrExistingSportCard = Sporteintrag(dateOfEntry=datetime.strptime(sportCard.createdAt, "%Y-%m-%dT%H:%M:%S.%fZ"), category=Kategorie.objects.get(pk=sportCard.categoryID))
+            if sportCard.comment is not None:
+                newOrExistingSportCard.commentOfTheDay = sportCard.comment
+            newOrExistingSportCard.save()
+            if sportCard.listOfSets is not None:
+                for exerciseSet in sportCard.listOfSets:
+                    sportEntry = Sporteintrag.objects.get(pk=newOrExistingSportCard.id)
+                    exercise = Uebung.objects.get(pk=exerciseSet.uebungsID)
+                    exerciseEntry = Uebungseintrag(sportEntry=sportEntry, isWorkout=exerciseSet.workout, numberOfSets=exerciseSet.numberOfSets, numberOfReps=exerciseSet.numberOfReps, exercise=exercise)
+                    exerciseEntry.save()
+            newOrExistingSportCard.save()
+        return CreateOrUpdateCard(newOrExistingSportCard=newOrExistingSportCard)
 
 class CreateSportEntry(graphene.Mutation):
     class Arguments:
@@ -82,6 +127,7 @@ class UpdateSportEntry(graphene.Mutation):
 
     def mutate(self, info, id, **kwargs):
         category_id = kwargs.get('category_id', None)
+        print(category_id)
         comment = kwargs.get('comment', None)
 
         entry = Sporteintrag.objects.get(pk=id)
@@ -175,6 +221,7 @@ class MyMutations(graphene.ObjectType):
     delete_sport_entry = DeleteSportEntry.Field()
     create_exercise = CreateExercise.Field()
     delete_exercise_entry = DeleteExerciseEntry.Field()
+    create_or_update_card = CreateOrUpdateCard.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=MyMutations)

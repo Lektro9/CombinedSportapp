@@ -61,14 +61,23 @@
 import ExerciseCard from "./components/ExerciseCard";
 // import gql from "graphql-tag";
 import { CREATE } from "./queries/createSportEntry.js";
-import { SYNC_CARD } from "./queries/createSportEntry.js";
+// import { SYNC_CARD } from "./queries/createSportEntry.js";
 import {
   GET_ENTRIES_FROM_CACHE,
   GET_ENTRIES_FROM_SERVER
 } from "./queries/allSportEntries.js";
 import { DELETE_ENTRY } from "./queries/deleteSportEntry.js";
 import { GET_ALLUEBUNG } from "./queries/allUebung.js";
+import { CREATE_OR_UPDATE_CARD } from "./queries/createOrUpdateCard.js";
 import { mdiRefresh, mdiPlus } from "@mdi/js";
+
+window.addEventListener("offline", function() {
+  console.log("offline");
+});
+
+window.addEventListener("online", function() {
+  console.log("online");
+});
 
 export default {
   props: {
@@ -82,7 +91,8 @@ export default {
     exampleData: [],
     allSporteintrag: [],
     refreshIcon: mdiRefresh,
-    plusIcon: mdiPlus
+    plusIcon: mdiPlus,
+    onlineStatus: window.navigator.onLine
   }),
   created() {
     this.$apollo.addSmartQuery("queryOnlineData", {
@@ -97,8 +107,6 @@ export default {
       update: data => data.allUebung,
       skip: true
     });
-    console.log(this.allSporteintrag);
-    console.log(this.allUebung);
   },
   methods: {
     // this is for clearing cache and refetching it from the server (cache could become a problem after too much offline usage)
@@ -125,7 +133,6 @@ export default {
             const data = cache.readQuery({
               query: GET_ENTRIES_FROM_CACHE
             });
-            console.log(data);
             data.allSporteintrag.push(createSportEntryOffline.sportEntry);
             cache.writeQuery({
               query: GET_ENTRIES_FROM_CACHE,
@@ -148,23 +155,66 @@ export default {
           return sportEntry;
         }
       });
-      for (const index in offlineCards) {
+      let changedCards = this.allSporteintrag.filter(sportEntry => {
+        if (sportEntry.id > 0) {
+          for (const newSet of sportEntry.uebungseintragSet) {
+            if (newSet.id < 0) {
+              return sportEntry;
+            }
+          }
+        }
+      });
+      changedCards = changedCards.map(card => {
+        card.uebungseintragSet = card.uebungseintragSet.filter(set => {
+          if (set.id < 0) {
+            return set;
+          }
+        });
+        return card;
+      });
+      const newAndChangedCards = offlineCards.concat(changedCards);
+      console.log(newAndChangedCards);
+      for (const card of newAndChangedCards) {
         this.$apollo
           .mutate({
-            mutation: SYNC_CARD,
+            mutation: CREATE_OR_UPDATE_CARD,
             variables: {
-              dateNow: offlineCards[index].dateOfEntry
+              sportCard: {
+                id: card.id < 0 ? null : card.id,
+                createdAt: new Date(card.dateOfEntry).toISOString(),
+                comment: card.commentOfTheDay,
+                categoryID: card.category.id,
+                listOfSets: card.uebungseintragSet.map(set => {
+                  return {
+                    numberOfSets: set.numberOfSets,
+                    numberOfReps: set.numberOfReps,
+                    uebungsID: set.exercise.id,
+                    workout: set.isWorkout
+                  };
+                })
+              }
             },
-            update: (cache, { data: { createSportEntry } }) => {
+            update: (cache, { data: { createOrUpdateCard } }) => {
               const data = cache.readQuery({
                 query: GET_ENTRIES_FROM_SERVER
               });
               data.allSporteintrag = data.allSporteintrag.filter(sportEntry => {
-                if (sportEntry.id !== offlineCards[index].id) {
+                // this is deleting offline cards
+                if (sportEntry.id !== card.id) {
                   return sportEntry;
                 }
               });
-              data.allSporteintrag.push(createSportEntry.sportEntry);
+              if (card.id < 0) {
+                data.allSporteintrag.push(
+                  createOrUpdateCard.newOrExistingSportCard
+                );
+              } else {
+                createOrUpdateCard.newOrExistingSportCard.uebungseintragSet.forEach(
+                  set => {
+                    data.allSporteintrag.uebungseintragSet.push(set);
+                  }
+                );
+              }
               cache.writeQuery({
                 query: GET_ENTRIES_FROM_SERVER,
                 data
@@ -191,9 +241,7 @@ export default {
           variables: {
             id: card.id
           },
-          update: (cache, { data: { deleteSportEntry } }) => {
-            // logs 2 times because update gets executed 2 times (optimistic and actual)
-            console.log(deleteSportEntry);
+          update: cache => {
             const data = cache.readQuery({
               query: GET_ENTRIES_FROM_CACHE
             });
