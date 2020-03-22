@@ -30,9 +30,22 @@
           <v-toolbar-title class="mt-2 text-center">Application</v-toolbar-title>
         </v-col>
         <v-col class="text-right">
-          <v-btn icon @click="addCard()">
-            <v-icon>{{ plusIcon }}</v-icon>
-          </v-btn>
+          <v-menu offset-y>
+            <template v-slot:activator="{ on }">
+              <v-btn icon v-on="on">
+                <v-icon>{{ plusIcon }}</v-icon>
+              </v-btn>
+            </template>
+            <v-list>
+              <v-list-item
+                v-for="(item, index) in allKategorie"
+                :key="index"
+                @click="addCard(item)"
+              >
+                <v-list-item-title>{{ item.name }}</v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
         </v-col>
       </v-row>
     </v-app-bar>
@@ -69,6 +82,8 @@ import {
 import { DELETE_ENTRY } from "./queries/deleteSportEntry.js";
 import { GET_ALLUEBUNG } from "./queries/allUebung.js";
 import { CREATE_OR_UPDATE_CARD } from "./queries/createOrUpdateCard.js";
+import { GET_ALL_CATEGROIES } from "./queries/allKategorie.js";
+import { DELETE_SERVER_EXENTRY } from "./queries/deleteExerciseEntry.js";
 import { mdiRefresh, mdiPlus } from "@mdi/js";
 
 window.addEventListener("offline", function() {
@@ -107,11 +122,19 @@ export default {
       update: data => data.allUebung,
       skip: true
     });
+    this.$apollo.addSmartQuery("AllKategorieServer", {
+      query: GET_ALL_CATEGROIES,
+      fetchPolicy: "network-only",
+      update: data => data.allKategorie,
+      skip: true
+    });
   },
   methods: {
     // this is for clearing cache and refetching it from the server (cache could become a problem after too much offline usage)
     clearCache() {
       this.$apollo.queries.queryOnlineData.skip = true;
+      this.$apollo.queries.allUebungServer.skip = true;
+      this.$apollo.queries.AllKategorieServer.skip = true;
       Object.values(this.$apollo.provider.clients).forEach(client =>
         client.resetStore()
       );
@@ -120,14 +143,20 @@ export default {
     fetchDataFromServer() {
       this.$apollo.queries.queryOnlineData.skip = false;
       this.$apollo.queries.queryOnlineData.refresh();
+      this.$apollo.queries.allUebungServer.skip = false;
+      this.$apollo.queries.allUebungServer.refresh();
+      this.$apollo.queries.AllKategorieServer.skip = false;
+      this.$apollo.queries.AllKategorieServer.refresh();
     },
-    addCard() {
+    addCard(category) {
       let nowISOstring = new Date().toISOString();
       this.$apollo
         .mutate({
           mutation: CREATE,
           variables: {
-            dateNow: nowISOstring
+            dateNow: nowISOstring,
+            categoryID: category.id,
+            categoryName: category.name
           },
           update: (cache, { data: { createSportEntryOffline } }) => {
             const data = cache.readQuery({
@@ -173,7 +202,6 @@ export default {
         return card;
       });
       const newAndChangedCards = offlineCards.concat(changedCards);
-      console.log(newAndChangedCards);
       for (const card of newAndChangedCards) {
         this.$apollo
           .mutate({
@@ -196,11 +224,11 @@ export default {
             },
             update: (cache, { data: { createOrUpdateCard } }) => {
               const data = cache.readQuery({
-                query: GET_ENTRIES_FROM_SERVER
+                query: GET_ENTRIES_FROM_CACHE
               });
               data.allSporteintrag = data.allSporteintrag.filter(sportEntry => {
                 // this is deleting offline cards
-                if (sportEntry.id !== card.id) {
+                if (sportEntry.id > 0) {
                   return sportEntry;
                 }
               });
@@ -209,14 +237,15 @@ export default {
                   createOrUpdateCard.newOrExistingSportCard
                 );
               } else {
-                createOrUpdateCard.newOrExistingSportCard.uebungseintragSet.forEach(
-                  set => {
-                    data.allSporteintrag.uebungseintragSet.push(set);
+                data.allSporteintrag.forEach(card => {
+                  if (card.id == createOrUpdateCard.newOrExistingSportCard.id) {
+                    card.uebungseintragSet =
+                      createOrUpdateCard.newOrExistingSportCard.uebungseintragSet;
                   }
-                );
+                });
               }
               cache.writeQuery({
-                query: GET_ENTRIES_FROM_SERVER,
+                query: GET_ENTRIES_FROM_CACHE,
                 data
               });
             }
@@ -264,6 +293,44 @@ export default {
           }
         });
       }
+      let allExerciseEntries = [];
+      this.allSporteintrag.forEach(card => {
+        card.uebungseintragSet.forEach(set => {
+          allExerciseEntries.push(set);
+        });
+      });
+      allExerciseEntries = allExerciseEntries.filter(ent => {
+        if (ent.markedDeleted) {
+          return ent;
+        }
+      });
+      for (const ent of allExerciseEntries) {
+        this.$apollo.mutate({
+          mutation: DELETE_SERVER_EXENTRY,
+          variables: {
+            id: ent.id
+          },
+          update: (cache, { data: { deleteExerciseEntry } }) => {
+            const data = cache.readQuery({
+              query: GET_ENTRIES_FROM_CACHE
+            });
+            for (let i in data.allSporteintrag) {
+              for (let j in data.allSporteintrag[i].uebungseintragSet) {
+                if (
+                  data.allSporteintrag[i].uebungseintragSet[j].id ==
+                  deleteExerciseEntry.retID
+                ) {
+                  data.allSporteintrag[i].uebungseintragSet.splice(j, 1);
+                }
+              }
+            }
+            cache.writeQuery({
+              query: GET_ENTRIES_FROM_CACHE,
+              data
+            });
+          }
+        });
+      }
     }
   },
   apollo: {
@@ -274,6 +341,10 @@ export default {
     },
     allUebung: {
       query: GET_ALLUEBUNG,
+      fetchPolicy: "cache-first"
+    },
+    allKategorie: {
+      query: GET_ALL_CATEGROIES,
       fetchPolicy: "cache-first"
     }
   }

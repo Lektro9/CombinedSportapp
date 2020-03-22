@@ -13,6 +13,7 @@ export const CREATE_EXERCISE_ENTRY = gql `
         name
       }
       isWorkout
+      markedDeleted @client
       sportEntry {
         id
       }

@@ -6,6 +6,7 @@
         {{exercise.numberOfSets}} x
         {{exercise.numberOfReps}}
         {{exercise.exercise ? exercise.exercise.name : ""}}
+        {{exercise.markedDeleted ? "del" : ""}}
         <v-btn icon small color="red" v-if="isEdit" @click="deleteExerciseEntry(exercise.id)">
           <v-icon>{{ minusIcon }}</v-icon>
         </v-btn>
@@ -56,6 +57,7 @@
         {{exercise.numberOfSets}} x
         {{exercise.numberOfReps}}
         {{exercise.exercise ? exercise.exercise.name : ""}}
+        {{exercise.markedDeleted ? "del" : ""}}
         <v-btn icon small color="red" v-if="isEdit" @click="deleteExerciseEntry(exercise.id)">
           <v-icon>{{ minusIcon }}</v-icon>
         </v-btn>
@@ -108,7 +110,7 @@ import { mdiPlus, mdiMinus, mdiClose, mdiCheck } from "@mdi/js";
 import { CREATE_EXERCISE_ENTRY } from "../queries/createExerciseEntry.js";
 import {
   DELETE_OFFLINE_EXENTRY,
-  DELETE_SERVER_EXENTRY
+  MARK_DELETE_SERVER_EXENTRY
 } from "../queries/deleteExerciseEntry.js";
 import { GET_ENTRIES_FROM_CACHE } from "../queries/allSportEntries.js";
 export default {
@@ -201,45 +203,15 @@ export default {
             });
           }
         });
-      } else {
-        this.$apollo
-          .mutate({
-            mutation: DELETE_SERVER_EXENTRY,
-            variables: {
-              id: id
-            },
-            update: (cache, { data: { deleteExerciseEntry } }) => {
-              const data = cache.readQuery({
-                query: GET_ENTRIES_FROM_CACHE
-              });
-              for (let i in data.allSporteintrag) {
-                for (let j in data.allSporteintrag[i].uebungseintragSet) {
-                  console.log(
-                    data.allSporteintrag[i].uebungseintragSet[j].id,
-                    deleteExerciseEntry.retID
-                  );
-                  if (
-                    data.allSporteintrag[i].uebungseintragSet[j].id ==
-                    deleteExerciseEntry.retID
-                  ) {
-                    data.allSporteintrag[i].uebungseintragSet.splice(j, 1);
-                  }
-                }
-              }
-              cache.writeQuery({
-                query: GET_ENTRIES_FROM_CACHE,
-                data
-              });
-            }
-          })
-          .then(data => {
-            // Result
-            console.log(data);
-          })
-          .catch(error => {
-            // Error
-            console.error(error);
-          });
+      }
+      // this case is for marking entries to be deleted
+      else {
+        this.$apollo.mutate({
+          mutation: MARK_DELETE_SERVER_EXENTRY,
+          variables: {
+            id: id
+          }
+        });
       }
     }
   }

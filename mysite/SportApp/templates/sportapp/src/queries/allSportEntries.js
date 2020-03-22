@@ -21,6 +21,7 @@ export const GET_ENTRIES_FROM_CACHE = gql `
           name
         }
         isWorkout
+        markedDeleted @client
       }
       markedDeleted @client
     }
@@ -46,6 +47,7 @@ export const GET_ENTRIES_FROM_SERVER = gql `
           name
         }
         isWorkout
+        markedDeleted @client
       }
       markedDeleted @client
     }

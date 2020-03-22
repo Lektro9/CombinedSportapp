@@ -1,5 +1,5 @@
 import {
-    gql
+  gql
 } from 'apollo-boost';
 
 export const CREATE_OR_UPDATE_CARD = gql `
@@ -22,6 +22,7 @@ mutation ($sportCard: SportCard!) {
             name
           }
           isWorkout
+          markedDeleted @client
         }
         markedDeleted @client
       }

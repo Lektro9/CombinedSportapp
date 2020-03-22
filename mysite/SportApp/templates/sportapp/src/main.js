@@ -30,8 +30,6 @@ import {
 import './registerServiceWorker';
 
 const API_HOST = 'http://127.0.0.1:8000/graphql';
-// const SCHEMA_VERSION = '1';
-// const SCHEMA_VERSION_KEY = 'apollo-schema-version';
 
 // building link chain to go through when sending requests
 
@@ -58,33 +56,13 @@ const serializingLink = new SerializingLink();
 
 // //bringing the whole gang together for an order to go through
 const link = ApolloLink.from([
-  // trackerLink,
   queueLink,
   serializingLink,
   retryLink,
-  // errorLink,
-  // authLink,
   httpLink
 ]);
 
-// for clearing out localstorage when new version is available
-// const currentVersion = window.localStorage.getItem(SCHEMA_VERSION_KEY);
-
-// if (currentVersion === SCHEMA_VERSION) {
-//   await persistor.restore();
-// } else {
-//   await persistor.purge();
-//   window.localStorage.setItem(SCHEMA_VERSION_KEY, SCHEMA_VERSION);
-// }
-
-const cache = new InMemoryCache({
-  // dataIdFromObject: object => {
-  //   if (object.name) {
-  //     return object.name;
-  //   }
-  //   return object.id;
-  // }
-});
+const cache = new InMemoryCache({});
 
 async function willCreateProvider() {
   await persistCache({
@@ -96,6 +74,9 @@ async function willCreateProvider() {
 // stuff for locale state
 const typeDefs = gql `
   extend type SporteintragType {
+    markedDeleted: Boolean
+  },
+  extend type UebungseintragType {
     markedDeleted: Boolean
   }
 `;
@@ -109,12 +90,11 @@ cache.writeData({
 const resolvers = {
   Mutation: {
     createSportEntryOffline: (_, {
-      createdAt
-    }, {
-      cache
+      createdAt,
+      categoryID,
+      categoryName
     }) => {
       // const data = cache.readQuery({ query: GET_ENTRIES_FROM_CACHE });
-      console.log(cache);
       const newEntry = {
         createSportEntry: {
           sportEntry: {
@@ -123,8 +103,8 @@ const resolvers = {
             commentOfTheDay: 'offlineCreated',
             uebungseintragSet: [],
             category: {
-              id: 1,
-              name: 'Pushups',
+              id: categoryID,
+              name: categoryName,
               __typename: 'KategorieType'
             },
             __typename: 'SporteintragType'
@@ -192,9 +172,35 @@ const resolvers = {
         __typename: 'notImportant'
       };
       return deletedEntry;
+    },
+    markDeleteExerciseEntry: (_, {
+      id
+    }, {
+      cache
+    }) => {
+      const data = cache.readQuery({
+        query: GET_ENTRIES_FROM_CACHE
+      });
+      data.allSporteintrag.forEach(card => {
+        card.uebungseintragSet.forEach(set => {
+          if (set.id === id) {
+            set.markedDeleted = !set.markedDeleted
+          }
+        })
+      });
+      cache.writeQuery({
+        query: GET_ENTRIES_FROM_CACHE,
+        data
+      });
+      return null;
     }
   },
   SporteintragType: {
+    markedDeleted() {
+      return false;
+    }
+  },
+  UebungseintragType: {
     markedDeleted() {
       return false;
     }
