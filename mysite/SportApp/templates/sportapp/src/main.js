@@ -220,6 +220,10 @@ Vue.config.productionTip = false;
 
 Vue.use(VueApollo);
 
+// register jw pagination component globally
+import JwPagination from 'jw-vue-pagination';
+Vue.component('jw-pagination', JwPagination);
+
 willCreateProvider().then(() => {
   new Vue({
     vuetify,
