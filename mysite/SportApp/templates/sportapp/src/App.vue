@@ -1,30 +1,16 @@
 <template>
   <v-app id="inspire">
-    <v-navigation-drawer v-model="drawer" app>
-      <v-list dense>
-        <v-list-item link>
-          <v-list-item-action>
-            <v-icon>mdi-home</v-icon>
-          </v-list-item-action>
-          <v-list-item-content>
-            <v-list-item-title>Home</v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-        <v-list-item link>
-          <v-list-item-action>
-            <v-icon>mdi-contact-mail</v-icon>
-          </v-list-item-action>
-          <v-list-item-content>
-            <v-list-item-title>Contact</v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-      </v-list>
-    </v-navigation-drawer>
+    <v-snackbar v-model="snackbar" color="warning" :timeout="6000" :top="true">
+      You are currently not online.
+      <v-btn dark text @click="snackbar = false">
+        Close
+      </v-btn>
+    </v-snackbar>
 
     <v-app-bar app color="blue" dark>
       <v-row justify="space-between">
         <v-col>
-          <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
+          <v-btn text @click="dialog = true">open guide</v-btn>
         </v-col>
         <v-col>
           <v-toolbar-title class="mt-2 text-center"
@@ -34,6 +20,11 @@
         <v-col class="text-right">
           <v-menu offset-y>
             <template v-slot:activator="{ on }">
+              <v-row justify="center">
+                <v-dialog v-model="dialog" width="600px">
+                  <guideModal @closeModal="dialog = false" />
+                </v-dialog>
+              </v-row>
               <v-btn icon v-on="on">
                 <v-icon>{{ plusIcon }}</v-icon>
               </v-btn>
@@ -53,13 +44,35 @@
     </v-app-bar>
 
     <v-content>
+      <v-offline
+        online-class="online"
+        offline-class="offline"
+        @detected-condition="amIOnline"
+      >
+      </v-offline>
+
       <v-btn text small @click="clearCache()">clear cache</v-btn>
       <v-btn text small @click="fetchDataFromServer()">load serverdata</v-btn>
-      <v-btn icon @click="syncCards()">
+      <v-btn
+        icon
+        @click="syncCards()"
+        :disabled="!this.onLine && this.filtered"
+      >
         <v-icon>{{ refreshIcon }}</v-icon>
       </v-btn>
+      <v-btn text small @click="resetFilter()">deactivate filter</v-btn>
+      <v-select
+        v-model="filter"
+        :items="
+          allKategorie.map((category) => {
+            return category.name;
+          })
+        "
+        @input="setFilter()"
+        label="Standard"
+      ></v-select>
       <v-container fluid>
-        <v-row class="grey lighten-5">
+        <v-row class="grey lighten-5 justify-center">
           <exerciseCard
             v-for="(exerciseCard, index) in pageOfItems"
             :key="index"
@@ -68,7 +81,7 @@
           />
         </v-row>
         <jw-pagination
-          :items="allSporteintrag"
+          :items="filtered ? allSporteintragFilter : allSporteintrag"
           @changePage="onChangePage"
         ></jw-pagination>
       </v-container>
@@ -78,12 +91,11 @@
 
 <script>
 import ExerciseCard from './components/ExerciseCard';
-// import gql from "graphql-tag";
 import { CREATE } from './queries/createSportEntry.js';
-// import { SYNC_CARD } from "./queries/createSportEntry.js";
 import {
   GET_ENTRIES_FROM_CACHE,
   GET_ENTRIES_FROM_SERVER,
+  GET_ENTRIES_FROM_CACHE_FILTER,
 } from './queries/allSportEntries.js';
 import { DELETE_ENTRY } from './queries/deleteSportEntry.js';
 import { GET_ALLUEBUNG } from './queries/allUebung.js';
@@ -91,14 +103,8 @@ import { CREATE_OR_UPDATE_CARD } from './queries/createOrUpdateCard.js';
 import { GET_ALL_CATEGROIES } from './queries/allKategorie.js';
 import { DELETE_SERVER_EXENTRY } from './queries/deleteExerciseEntry.js';
 import { mdiRefresh, mdiPlus } from '@mdi/js';
-
-window.addEventListener('offline', function() {
-  console.log('offline');
-});
-
-window.addEventListener('online', function() {
-  console.log('online');
-});
+import VOffline from 'v-offline';
+import guideModal from './components/GuideModal.vue';
 
 export default {
   props: {
@@ -106,15 +112,24 @@ export default {
   },
   components: {
     ExerciseCard,
+    VOffline,
+    guideModal,
   },
   data: () => ({
     drawer: null,
     exampleData: [],
     allSporteintrag: [],
+    allSporteintragFilter: [],
     refreshIcon: mdiRefresh,
     plusIcon: mdiPlus,
-    onlineStatus: window.navigator.onLine,
     pageOfItems: [],
+    filtered: false,
+    filter: '',
+    onLine: null,
+    onlineSlot: 'online',
+    offlineSlot: 'offline',
+    snackbar: false,
+    dialog: false,
   }),
   created() {
     this.$apollo.addSmartQuery('queryOnlineData', {
@@ -135,23 +150,47 @@ export default {
       update: (data) => data.allKategorie,
       skip: true,
     });
+    this.$apollo.addSmartQuery('AllFilteredEntries', {
+      query: GET_ENTRIES_FROM_CACHE_FILTER,
+      fetchPolicy: 'network-only',
+      update: (data) => data.allSporteintragFilter,
+      skip: true,
+    });
   },
+  computed: {},
   methods: {
+    amIOnline(e) {
+      this.onLine = e;
+      if (!this.onLine) this.snackbar = true;
+    },
+    resetFilter() {
+      this.filtered = false;
+      this.filter = '';
+    },
+    setFilter() {
+      this.filtered = true;
+      this.$apollo.queries.allSporteintragFilter.refetch({
+        filter: this.filter,
+      });
+    },
     onChangePage(pageOfItems) {
       // update page of items
       this.pageOfItems = pageOfItems;
     },
     // this is for clearing cache and refetching it from the server (cache could become a problem after too much offline usage)
     clearCache() {
-      this.$apollo.queries.queryOnlineData.skip = true;
-      this.$apollo.queries.allUebungServer.skip = true;
-      this.$apollo.queries.AllKategorieServer.skip = true;
-      Object.values(this.$apollo.provider.clients).forEach((client) =>
-        client.resetStore().then(() => {
-          //this.allSporteintrag = [];
-          this.fetchDataFromServer();
-        })
-      );
+      // this.$apollo.queries.queryOnlineData.skip = true;
+      // this.$apollo.queries.allUebungServer.skip = true;
+      // this.$apollo.queries.AllKategorieServer.skip = true;
+      // this.$apollo.queries.AllFilteredEntries.skip = true;
+      // Object.values(this.$apollo.provider.clients).forEach((client) =>
+      //   client.resetStore().then(() => {
+      //     this.allSporteintrag = [];
+      //     // this.fetchDataFromServer();
+      //   })
+      // );
+      window.localStorage.clear();
+      window.location.reload();
     },
     fetchDataFromServer() {
       this.$apollo.queries.queryOnlineData.skip = false;
@@ -160,6 +199,8 @@ export default {
       this.$apollo.queries.allUebungServer.refresh();
       this.$apollo.queries.AllKategorieServer.skip = false;
       this.$apollo.queries.AllKategorieServer.refresh();
+      this.$apollo.queries.AllFilteredEntries.skip = false;
+      this.$apollo.queries.AllFilteredEntries.refresh();
     },
     addCard(category) {
       let nowISOstring = new Date().toISOString();
@@ -175,16 +216,16 @@ export default {
             const data = cache.readQuery({
               query: GET_ENTRIES_FROM_CACHE,
             });
-            data.allSporteintrag.push(createSportEntryOffline.sportEntry);
+            data.allSporteintrag.unshift(createSportEntryOffline.sportEntry);
             cache.writeQuery({
               query: GET_ENTRIES_FROM_CACHE,
               data,
             });
           },
         })
-        .then((data) => {
+        .then(() => {
           // Result
-          console.log(data);
+          if (this.filtered) this.setFilter();
         })
         .catch((error) => {
           // Error
@@ -265,9 +306,8 @@ export default {
               });
             },
           })
-          .then((data) => {
-            // Result
-            console.log(data);
+          .then(() => {
+            if (this.filtered) this.setFilter();
           })
           .catch((error) => {
             // Error
@@ -346,13 +386,19 @@ export default {
           },
         });
       }
-      this.clearCache();
+      console.log('here I have to fetch every query again imo');
+      this.fetchDataFromServer();
     },
   },
   apollo: {
     // Simple query that will update the 'allSporteintrag' vue property
     allSporteintrag: {
       query: GET_ENTRIES_FROM_CACHE,
+      fetchPolicy: 'cache-first',
+    },
+    allSporteintragFilter: {
+      query: GET_ENTRIES_FROM_CACHE_FILTER,
+      variables: { filter: 'Pushups' },
       fetchPolicy: 'cache-first',
     },
     allUebung: {
@@ -375,5 +421,13 @@ input[type='number']::-webkit-outer-spin-button {
 }
 .v-text-field.v-text-field--enclosed > .v-input__control > .v-input__slot {
   padding: 0;
+}
+.offline {
+  background-color: #fc9842;
+  background-image: linear-gradient(315deg, #fc9842 0%, #fe5f75 74%);
+}
+.online {
+  background-color: #00b712;
+  background-image: linear-gradient(315deg, #00b712 0%, #5aff15 74%);
 }
 </style>

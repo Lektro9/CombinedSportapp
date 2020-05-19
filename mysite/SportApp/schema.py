@@ -31,15 +31,20 @@ class UebungseintragType(DjangoObjectType):
 
 class Query(graphene.ObjectType):
     all_Sporteintrag = graphene.List(SporteintragType)
+    all_Sporteintrag_Filter = graphene.Field(graphene.List(SporteintragType), filter=graphene.String())
     all_Kategorie = graphene.List(KategorieType)
     all_Uebung = graphene.List(UebungType)
     all_Uebung_Search = graphene.Field(
         lambda: graphene.List(UebungType), categoryName=graphene.String())
     all_Uebungseintrag = graphene.List(UebungseintragType)
+    filter = graphene.String(required=False)
 
     def resolve_all_Sporteintrag(self, info, **kwargs):
         # We can easily optimize query count in the resolve method
-        return Sporteintrag.objects.select_related('category').all()
+        return Sporteintrag.objects.select_related('category').order_by('-dateOfEntry')
+
+    def resolve_all_Sporteintrag_Filter(self, info, filter):
+        return Sporteintrag.objects.filter(category__name=filter)
 
     def resolve_all_Kategorie(self, info, **kwargs):
         return Kategorie.objects.all()
@@ -127,7 +132,6 @@ class UpdateSportEntry(graphene.Mutation):
 
     def mutate(self, info, id, **kwargs):
         category_id = kwargs.get('category_id', None)
-        print(category_id)
         comment = kwargs.get('comment', None)
 
         entry = Sporteintrag.objects.get(pk=id)

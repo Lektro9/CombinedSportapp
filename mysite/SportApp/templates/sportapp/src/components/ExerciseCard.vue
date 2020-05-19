@@ -4,7 +4,14 @@
     <!-- TODO: Cool Background image -->
     <v-row justify="space-between" class="pa-2">
       <v-icon class="calicon">{{ calenderIcon }}</v-icon>
-      <div class="date">{{ readableDate }}</div>
+      <div v-if="!isEdit || exerciseData.id > 0" class="date">
+        {{ makeDateReadable() }}
+      </div>
+      <input
+        v-if="isEdit && exerciseData.id < 0"
+        type="date"
+        v-model="exerciseData.dateOfEntry"
+      />
 
       <v-menu offset-y class="moreicon">
         <template v-slot:activator="{ on }">
@@ -27,7 +34,11 @@
     </v-btn>-->
 
     <v-row justify="center">
-      <v-card-title v-if="exerciseData.category != null" class="pa-0 ma-0" justify="center">
+      <v-card-title
+        v-if="exerciseData.category != null"
+        class="pa-0 ma-0"
+        justify="center"
+      >
         <v-icon large left>{{ muscleIcon }}</v-icon>
         {{ exerciseData.category.name }} {{ exerciseData.id }}
       </v-card-title>
@@ -43,24 +54,33 @@
 
     <v-divider></v-divider>
     <p v-if="exerciseData.markedDeleted === true">will be deleted</p>
-    <v-textarea v-show="isEdit" filled auto-grow label="Two rows" rows="2" row-height="20"></v-textarea>
+    <v-textarea
+      v-if="isEdit && exerciseData.id < 0"
+      v-model="exerciseData.commentOfTheDay"
+      filled
+      auto-grow
+      label="Two rows"
+      rows="2"
+      row-height="20"
+    ></v-textarea>
+    {{ showComment() }}
   </v-card>
 </template>
 
 <script>
-import ActualExercises from "./ActualExercises";
-import { GET_ENTRIES_FROM_CACHE } from "../queries/allSportEntries.js";
+import ActualExercises from './ActualExercises';
+import { GET_ENTRIES_FROM_CACHE } from '../queries/allSportEntries.js';
 import {
   DELETE_ENTRY,
-  MARK_DELETE_ENTRY
-} from "../queries/deleteSportEntry.js";
-import { mdiDotsVertical, mdiMinus, mdiCalendar, mdiArmFlex } from "@mdi/js";
+  MARK_DELETE_ENTRY,
+} from '../queries/deleteSportEntry.js';
+import { mdiDotsVertical, mdiMinus, mdiCalendar, mdiArmFlex } from '@mdi/js';
 
 export default {
-  name: "ExerciseCard",
-  props: ["exerciseData", "allUebung"],
+  name: 'ExerciseCard',
+  props: ['exerciseData', 'allUebung'],
   components: {
-    ActualExercises
+    ActualExercises,
   },
   data: () => ({
     isEdit: false,
@@ -69,22 +89,31 @@ export default {
     calenderIcon: mdiCalendar,
     muscleIcon: mdiArmFlex,
     possibleChoices: [],
-    readableDate: ""
+    readableDate: '',
   }),
   created() {
-    this.allUebung.filter(uebung => {
+    this.allUebung.filter((uebung) => {
       if (uebung.category.name === this.exerciseData.category.name) {
         this.possibleChoices.push(uebung);
       }
     });
-    let cardDate = new Date(this.exerciseData.dateOfEntry);
-    let dayName = cardDate.toString().split(" ")[0];
-    let day = cardDate.getDate();
-    let month = cardDate.getMonth() + 1;
-    let year = cardDate.getYear() + 1900;
-    this.readableDate = dayName + " " + day + "." + month + "." + year;
   },
+  computed: {},
   methods: {
+    showComment() {
+      if (!this.isEdit) {
+        return this.exerciseData.commentOfTheDay;
+      }
+    },
+    makeDateReadable() {
+      let cardDate = new Date(this.exerciseData.dateOfEntry);
+      let dayName = cardDate.toString().split(' ')[0];
+      let day = cardDate.getDate();
+      let month = cardDate.getMonth() + 1;
+      let year = cardDate.getYear() + 1900;
+      this.readableDate = dayName + ' ' + day + '.' + month + '.' + year;
+      return this.readableDate;
+    },
     editMethod(index) {
       // eslint-disable-next-line no-console
       console.log(this.$refs.test[index]);
@@ -95,53 +124,44 @@ export default {
       this.$apollo.mutate({
         mutation: MARK_DELETE_ENTRY,
         variables: {
-          id: currentID
-        }
+          id: currentID,
+        },
       });
     },
     deleteCard() {
       let currentID = this.exerciseData.id;
-      this.$apollo
-        .mutate({
-          mutation: DELETE_ENTRY,
-          variables: {
-            id: currentID
-          },
-          update: (cache, { data: { deleteSportEntry } }) => {
-            // logs 2 times because update gets executed 2 times (optimistic and actual)
-            console.log(deleteSportEntry);
-            const data = cache.readQuery({
-              query: GET_ENTRIES_FROM_CACHE
-            });
-            data.allSporteintrag = data.allSporteintrag.filter(e => {
-              return e.id !== currentID;
-            });
-            console.log(data);
-            cache.writeQuery({
-              query: GET_ENTRIES_FROM_CACHE,
-              data
-            });
-          },
-          optimisticResponse: {
-            deleteSportEntry: {
-              ok: true,
-              __typename: "DeleteSportEntry"
-            }
-          },
-          context: {
-            serializationKey: "CARDS"
-          }
-        })
-        .then(data => {
-          // Result
+      this.$apollo.mutate({
+        mutation: DELETE_ENTRY,
+        variables: {
+          id: currentID,
+        },
+        update: (cache, { data: { deleteSportEntry } }) => {
+          // logs 2 times because update gets executed 2 times (optimistic and actual)
+          console.log(deleteSportEntry);
+          const data = cache.readQuery({
+            query: GET_ENTRIES_FROM_CACHE,
+          });
+          data.allSporteintrag = data.allSporteintrag.filter((e) => {
+            return e.id !== currentID;
+          });
           console.log(data);
-        })
-        .catch(error => {
-          // Error
-          console.error(error);
-        });
-    }
-  }
+          cache.writeQuery({
+            query: GET_ENTRIES_FROM_CACHE,
+            data,
+          });
+        },
+        optimisticResponse: {
+          deleteSportEntry: {
+            ok: true,
+            __typename: 'DeleteSportEntry',
+          },
+        },
+        context: {
+          serializationKey: 'CARDS',
+        },
+      });
+    },
+  },
 };
 </script>
 

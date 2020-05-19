@@ -88,6 +88,24 @@ cache.writeData({
 });
 
 const resolvers = {
+  Query: {
+    allSporteintragFilter: (_, {
+      filter
+    }, {
+      cache
+    }) => {
+      const data = cache.readQuery({
+        query: GET_ENTRIES_FROM_CACHE
+      });
+      const filteredEntries = data.allSporteintrag.filter(card => {
+        if (card.category.name === filter) {
+          return card;
+        }
+      });
+      console.log(filteredEntries);
+      return filteredEntries;
+    }
+  },
   Mutation: {
     createSportEntryOffline: (_, {
       createdAt,
@@ -100,7 +118,7 @@ const resolvers = {
           sportEntry: {
             id: -Date.now(),
             dateOfEntry: createdAt,
-            commentOfTheDay: 'offlineCreated',
+            commentOfTheDay: '',
             uebungseintragSet: [],
             category: {
               id: categoryID,
@@ -198,7 +216,7 @@ const resolvers = {
   SporteintragType: {
     markedDeleted() {
       return false;
-    }
+    },
   },
   UebungseintragType: {
     markedDeleted() {
