@@ -10,11 +10,15 @@
     <v-app-bar app color="blue" dark>
       <v-row justify="space-between">
         <v-col>
-          <v-btn text @click="dialog = true">open guide</v-btn>
+          <v-toolbar-title class="mt-2"
+            ><v-btn text @click="dialog = true"
+              >open guide</v-btn
+            ></v-toolbar-title
+          >
         </v-col>
         <v-col>
           <v-toolbar-title class="mt-2 text-center"
-            >Application</v-toolbar-title
+            >Calisthenics</v-toolbar-title
           >
         </v-col>
         <v-col class="text-right">
