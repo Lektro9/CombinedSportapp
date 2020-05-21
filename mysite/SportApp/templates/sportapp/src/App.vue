@@ -13,7 +13,9 @@
           </v-toolbar-title>
         </v-col>
         <v-col>
-          <v-toolbar-title class="mt-2 text-center">Calisthenics</v-toolbar-title>
+          <v-toolbar-title class="mt-2 text-center"
+            >Calisthenics</v-toolbar-title
+          >
         </v-col>
         <v-col class="text-right">
           <v-menu offset-y>
@@ -42,11 +44,19 @@
     </v-app-bar>
 
     <v-content>
-      <v-offline online-class="online" offline-class="offline" @detected-condition="amIOnline"></v-offline>
+      <v-offline
+        online-class="online"
+        offline-class="offline"
+        @detected-condition="amIOnline"
+      ></v-offline>
 
       <v-btn text small @click="clearCache()">clear cache</v-btn>
       <v-btn text small @click="fetchDataFromServer()">load serverdata</v-btn>
-      <v-btn icon @click="syncCards()" :disabled="!this.onLine && this.filtered">
+      <v-btn
+        icon
+        @click="syncCards()"
+        :disabled="!this.onLine && this.filtered"
+      >
         <v-icon>{{ refreshIcon }}</v-icon>
       </v-btn>
       <v-btn text small @click="resetFilter()">deactivate filter</v-btn>
@@ -60,14 +70,14 @@
         @input="setFilter()"
         label="Standard"
       ></v-select>
-      <!-- <jw-pagination
+      <jw-pagination
         :items="filtered ? allSporteintragFilter : allSporteintrag"
         @changePage="onChangePage"
-      ></jw-pagination>-->
+      ></jw-pagination>
       <v-container fluid>
         <v-row class="grey lighten-5 justify-center">
           <exerciseCard
-            v-for="(exerciseCard, index) in filtered ? allSporteintragFilter : allSporteintrag"
+            v-for="(exerciseCard, index) in pageOfItems"
             :key="index"
             :exerciseData="exerciseCard"
             :allUebung="allUebung"
@@ -80,30 +90,30 @@
 </template>
 
 <script>
-import ExerciseCard from "./components/ExerciseCard";
-import { CREATE } from "./queries/createSportEntry.js";
+import ExerciseCard from './components/ExerciseCard';
+import { CREATE } from './queries/createSportEntry.js';
 import {
   GET_ENTRIES_FROM_CACHE,
   GET_ENTRIES_FROM_SERVER,
-  GET_ENTRIES_FROM_CACHE_FILTER
-} from "./queries/allSportEntries.js";
-import { DELETE_ENTRY } from "./queries/deleteSportEntry.js";
-import { GET_ALLUEBUNG } from "./queries/allUebung.js";
-import { CREATE_OR_UPDATE_CARD } from "./queries/createOrUpdateCard.js";
-import { GET_ALL_CATEGROIES } from "./queries/allKategorie.js";
-import { DELETE_SERVER_EXENTRY } from "./queries/deleteExerciseEntry.js";
-import { mdiRefresh, mdiPlus } from "@mdi/js";
-import VOffline from "v-offline";
-import guideModal from "./components/GuideModal.vue";
+  GET_ENTRIES_FROM_CACHE_FILTER,
+} from './queries/allSportEntries.js';
+import { DELETE_ENTRY } from './queries/deleteSportEntry.js';
+import { GET_ALLUEBUNG } from './queries/allUebung.js';
+import { CREATE_OR_UPDATE_CARD } from './queries/createOrUpdateCard.js';
+import { GET_ALL_CATEGROIES } from './queries/allKategorie.js';
+import { DELETE_SERVER_EXENTRY } from './queries/deleteExerciseEntry.js';
+import { mdiRefresh, mdiPlus } from '@mdi/js';
+import VOffline from 'v-offline';
+import guideModal from './components/GuideModal.vue';
 
 export default {
   props: {
-    source: String
+    source: String,
   },
   components: {
     ExerciseCard,
     VOffline,
-    guideModal
+    guideModal,
   },
   data: () => ({
     drawer: null,
@@ -114,37 +124,37 @@ export default {
     plusIcon: mdiPlus,
     pageOfItems: [],
     filtered: false,
-    filter: "",
+    filter: '',
     onLine: null,
-    onlineSlot: "online",
-    offlineSlot: "offline",
+    onlineSlot: 'online',
+    offlineSlot: 'offline',
     snackbar: false,
-    dialog: false
+    dialog: false,
   }),
   created() {
-    this.$apollo.addSmartQuery("queryOnlineData", {
+    this.$apollo.addSmartQuery('queryOnlineData', {
       query: GET_ENTRIES_FROM_SERVER,
-      fetchPolicy: "network-only",
-      update: data => data.allSporteintrag,
-      skip: true
+      fetchPolicy: 'network-only',
+      update: (data) => data.allSporteintrag,
+      skip: true,
     });
-    this.$apollo.addSmartQuery("allUebungServer", {
+    this.$apollo.addSmartQuery('allUebungServer', {
       query: GET_ALLUEBUNG,
-      fetchPolicy: "network-only",
-      update: data => data.allUebung,
-      skip: true
+      fetchPolicy: 'network-only',
+      update: (data) => data.allUebung,
+      skip: true,
     });
-    this.$apollo.addSmartQuery("AllKategorieServer", {
+    this.$apollo.addSmartQuery('AllKategorieServer', {
       query: GET_ALL_CATEGROIES,
-      fetchPolicy: "network-only",
-      update: data => data.allKategorie,
-      skip: true
+      fetchPolicy: 'network-only',
+      update: (data) => data.allKategorie,
+      skip: true,
     });
-    this.$apollo.addSmartQuery("AllFilteredEntries", {
+    this.$apollo.addSmartQuery('AllFilteredEntries', {
       query: GET_ENTRIES_FROM_CACHE_FILTER,
-      fetchPolicy: "network-only",
-      update: data => data.allSporteintragFilter,
-      skip: true
+      fetchPolicy: 'network-only',
+      update: (data) => data.allSporteintragFilter,
+      skip: true,
     });
   },
   computed: {},
@@ -155,12 +165,12 @@ export default {
     },
     resetFilter() {
       this.filtered = false;
-      this.filter = "";
+      this.filter = '';
     },
     setFilter() {
       this.filtered = true;
       this.$apollo.queries.allSporteintragFilter.refetch({
-        filter: this.filter
+        filter: this.filter,
       });
     },
     onChangePage(pageOfItems) {
@@ -200,35 +210,35 @@ export default {
           variables: {
             dateNow: nowISOstring,
             categoryID: category.id,
-            categoryName: category.name
+            categoryName: category.name,
           },
           update: (cache, { data: { createSportEntryOffline } }) => {
             const data = cache.readQuery({
-              query: GET_ENTRIES_FROM_CACHE
+              query: GET_ENTRIES_FROM_CACHE,
             });
             data.allSporteintrag.unshift(createSportEntryOffline.sportEntry);
             cache.writeQuery({
               query: GET_ENTRIES_FROM_CACHE,
-              data
+              data,
             });
-          }
+          },
         })
         .then(() => {
           // Result
           if (this.filtered) this.setFilter();
         })
-        .catch(error => {
+        .catch((error) => {
           // Error
           console.error(error);
         });
     },
     syncCards() {
-      const offlineCards = this.allSporteintrag.filter(sportEntry => {
+      const offlineCards = this.allSporteintrag.filter((sportEntry) => {
         if (sportEntry.id < 0) {
           return sportEntry;
         }
       });
-      let changedCards = this.allSporteintrag.filter(sportEntry => {
+      let changedCards = this.allSporteintrag.filter((sportEntry) => {
         if (sportEntry.id > 0) {
           for (const newSet of sportEntry.uebungseintragSet) {
             if (newSet.id < 0) {
@@ -237,8 +247,8 @@ export default {
           }
         }
       });
-      changedCards = changedCards.map(card => {
-        card.uebungseintragSet = card.uebungseintragSet.filter(set => {
+      changedCards = changedCards.map((card) => {
+        card.uebungseintragSet = card.uebungseintragSet.filter((set) => {
           if (set.id < 0) {
             return set;
           }
@@ -256,32 +266,34 @@ export default {
                 createdAt: new Date(card.dateOfEntry).toISOString(),
                 comment: card.commentOfTheDay,
                 categoryID: card.category.id,
-                listOfSets: card.uebungseintragSet.map(set => {
+                listOfSets: card.uebungseintragSet.map((set) => {
                   return {
                     numberOfSets: set.numberOfSets,
                     numberOfReps: set.numberOfReps,
                     uebungsID: set.exercise.id,
-                    workout: set.isWorkout
+                    workout: set.isWorkout,
                   };
-                })
-              }
+                }),
+              },
             },
             update: (cache, { data: { createOrUpdateCard } }) => {
               const data = cache.readQuery({
-                query: GET_ENTRIES_FROM_CACHE
+                query: GET_ENTRIES_FROM_CACHE,
               });
-              data.allSporteintrag = data.allSporteintrag.filter(sportEntry => {
-                // this is deleting offline cards
-                if (sportEntry.id > 0) {
-                  return sportEntry;
+              data.allSporteintrag = data.allSporteintrag.filter(
+                (sportEntry) => {
+                  // this is deleting offline cards
+                  if (sportEntry.id > 0) {
+                    return sportEntry;
+                  }
                 }
-              });
+              );
               if (card.id < 0) {
                 data.allSporteintrag.push(
                   createOrUpdateCard.newOrExistingSportCard
                 );
               } else {
-                data.allSporteintrag.forEach(card => {
+                data.allSporteintrag.forEach((card) => {
                   if (card.id == createOrUpdateCard.newOrExistingSportCard.id) {
                     card.uebungseintragSet =
                       createOrUpdateCard.newOrExistingSportCard.uebungseintragSet;
@@ -290,19 +302,19 @@ export default {
               }
               cache.writeQuery({
                 query: GET_ENTRIES_FROM_CACHE,
-                data
+                data,
               });
-            }
+            },
           })
           .then(() => {
             if (this.filtered) this.setFilter();
           })
-          .catch(error => {
+          .catch((error) => {
             // Error
             console.error(error);
           });
       }
-      let markedDeletedCards = this.allSporteintrag.filter(sportEntry => {
+      let markedDeletedCards = this.allSporteintrag.filter((sportEntry) => {
         if (sportEntry.markedDeleted) {
           return sportEntry;
         }
@@ -311,38 +323,38 @@ export default {
         this.$apollo.mutate({
           mutation: DELETE_ENTRY,
           variables: {
-            id: card.id
+            id: card.id,
           },
-          update: cache => {
+          update: (cache) => {
             const data = cache.readQuery({
-              query: GET_ENTRIES_FROM_CACHE
+              query: GET_ENTRIES_FROM_CACHE,
             });
-            data.allSporteintrag = data.allSporteintrag.filter(e => {
+            data.allSporteintrag = data.allSporteintrag.filter((e) => {
               return e.id !== card.id;
             });
             cache.writeQuery({
               query: GET_ENTRIES_FROM_CACHE,
-              data
+              data,
             });
           },
           optimisticResponse: {
             deleteSportEntry: {
               ok: true,
-              __typename: "DeleteSportEntry"
-            }
+              __typename: 'DeleteSportEntry',
+            },
           },
           context: {
-            serializationKey: "CARDS"
-          }
+            serializationKey: 'CARDS',
+          },
         });
       }
       let allExerciseEntries = [];
-      this.allSporteintrag.forEach(card => {
-        card.uebungseintragSet.forEach(set => {
+      this.allSporteintrag.forEach((card) => {
+        card.uebungseintragSet.forEach((set) => {
           allExerciseEntries.push(set);
         });
       });
-      allExerciseEntries = allExerciseEntries.filter(ent => {
+      allExerciseEntries = allExerciseEntries.filter((ent) => {
         if (ent.markedDeleted) {
           return ent;
         }
@@ -351,11 +363,11 @@ export default {
         this.$apollo.mutate({
           mutation: DELETE_SERVER_EXENTRY,
           variables: {
-            id: ent.id
+            id: ent.id,
           },
           update: (cache, { data: { deleteExerciseEntry } }) => {
             const data = cache.readQuery({
-              query: GET_ENTRIES_FROM_CACHE
+              query: GET_ENTRIES_FROM_CACHE,
             });
             for (let i in data.allSporteintrag) {
               for (let j in data.allSporteintrag[i].uebungseintragSet) {
@@ -369,41 +381,41 @@ export default {
             }
             cache.writeQuery({
               query: GET_ENTRIES_FROM_CACHE,
-              data
+              data,
             });
-          }
+          },
         });
       }
-      console.log("here I have to fetch every query again imo");
+      console.log('here I have to fetch every query again imo');
       this.fetchDataFromServer();
-    }
+    },
   },
   apollo: {
     // Simple query that will update the 'allSporteintrag' vue property
     allSporteintrag: {
       query: GET_ENTRIES_FROM_CACHE,
-      fetchPolicy: "cache-first"
+      fetchPolicy: 'cache-first',
     },
     allSporteintragFilter: {
       query: GET_ENTRIES_FROM_CACHE_FILTER,
-      variables: { filter: "Pushups" },
-      fetchPolicy: "cache-first"
+      variables: { filter: 'Pushups' },
+      fetchPolicy: 'cache-first',
     },
     allUebung: {
       query: GET_ALLUEBUNG,
-      fetchPolicy: "cache-first"
+      fetchPolicy: 'cache-first',
     },
     allKategorie: {
       query: GET_ALL_CATEGROIES,
-      fetchPolicy: "cache-first"
-    }
-  }
+      fetchPolicy: 'cache-first',
+    },
+  },
 };
 </script>
 
 <style>
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }

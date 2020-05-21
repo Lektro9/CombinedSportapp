@@ -49,7 +49,7 @@
       :isEdit="isEdit"
       :cardID="exerciseData.id"
       :category="exerciseData.category"
-      :possibleChoices="possibleChoices"
+      :possibleChoices="getUebungen()"
     />
 
     <v-divider></v-divider>
@@ -88,18 +88,20 @@ export default {
     minusIcon: mdiMinus,
     calenderIcon: mdiCalendar,
     muscleIcon: mdiArmFlex,
-    possibleChoices: [],
     readableDate: '',
   }),
-  created() {
-    this.allUebung.filter((uebung) => {
-      if (uebung.category.name === this.exerciseData.category.name) {
-        this.possibleChoices.push(uebung);
-      }
-    });
-  },
+  created() {},
   computed: {},
   methods: {
+    getUebungen() {
+      let possibleChoices = [];
+      this.allUebung.filter((uebung) => {
+        if (uebung.category.name === this.exerciseData.category.name) {
+          possibleChoices.push(uebung);
+        }
+      });
+      return possibleChoices;
+    },
     showComment() {
       if (!this.isEdit) {
         return this.exerciseData.commentOfTheDay;
