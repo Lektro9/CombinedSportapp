@@ -127,7 +127,6 @@ export default {
   }),
   computed: {
     getExerciseName() {
-      console.log(this.possibleChoices);
       let names = [];
       for (let name of this.possibleChoices) {
         names.push(name.name);
