@@ -1,7 +1,13 @@
 /* eslint-disable */
 <template>
-  <v-card class="ma-3 pa-4" width="300" height="350" elevation="10" raised>
-    <!-- TODO: Cool Background image -->
+  <v-card
+    v-if="exerciseData.markedDeleted === false"
+    class="ma-3 pa-4"
+    width="300"
+    height="350"
+    elevation="10"
+    raised
+  >
     <v-row justify="space-between" class="pa-2">
       <v-icon class="calicon">{{ calenderIcon }}</v-icon>
       <div v-if="!isEdit || exerciseData.id > 0" class="date">
@@ -118,7 +124,6 @@ export default {
     },
     editMethod(index) {
       // eslint-disable-next-line no-console
-      console.log(this.$refs.test[index]);
       return this.$refs.test[index];
     },
     markDelete() {
@@ -138,15 +143,14 @@ export default {
           id: currentID,
         },
         update: (cache, { data: { deleteSportEntry } }) => {
-          // logs 2 times because update gets executed 2 times (optimistic and actual)
           console.log(deleteSportEntry);
+          // logs 2 times because update gets executed 2 times (optimistic and actual)
           const data = cache.readQuery({
             query: GET_ENTRIES_FROM_CACHE,
           });
           data.allSporteintrag = data.allSporteintrag.filter((e) => {
             return e.id !== currentID;
           });
-          console.log(data);
           cache.writeQuery({
             query: GET_ENTRIES_FROM_CACHE,
             data,

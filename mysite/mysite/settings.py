@@ -139,7 +139,8 @@ CORS_ORIGIN_WHITELIST = [
     "http://localhost",
     "http://127.0.0.1:59264",
     "http://localhost:8081",
-    "http://192.168.178.29:8081"
+    "http://192.168.178.29:8081",
+    "https://lektro9.github.io"
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True

@@ -2,17 +2,29 @@
   <div>
     <div>Warmup:</div>
     <div v-for="(exercise, index) in exercises" :key="index + 'warm'">
-      <div v-if="!exercise.isWorkout">
-        {{exercise.numberOfSets}} x
-        {{exercise.numberOfReps}}
-        {{exercise.exercise ? exercise.exercise.name : ""}}
-        {{exercise.markedDeleted ? "del" : ""}}
-        <v-btn icon small color="red" v-if="isEdit" @click="deleteExerciseEntry(exercise.id)">
+      <div v-if="!exercise.isWorkout && !exercise.markedDeleted">
+        {{ exercise.numberOfSets }} x
+        {{ exercise.numberOfReps }}
+        {{ exercise.exercise ? exercise.exercise.name : '' }}
+        {{ exercise.markedDeleted ? 'del' : '' }}
+        <v-btn
+          icon
+          small
+          color="red"
+          v-if="isEdit"
+          @click="deleteExerciseEntry(exercise.id)"
+        >
           <v-icon>{{ minusIcon }}</v-icon>
         </v-btn>
       </div>
     </div>
-    <v-btn icon small color="green" v-if="isEdit" @click="newEntryFieldWarm = !newEntryFieldWarm">
+    <v-btn
+      icon
+      small
+      color="green"
+      v-if="isEdit"
+      @click="newEntryFieldWarm = !newEntryFieldWarm"
+    >
       <v-icon>{{ plusIcon }}</v-icon>
     </v-btn>
     <v-container fluid>
@@ -53,17 +65,29 @@
     </v-container>
     <div>Workout:</div>
     <div v-for="(exercise, index) in exercises" :key="index + 'work'">
-      <div v-if="exercise.isWorkout">
-        {{exercise.numberOfSets}} x
-        {{exercise.numberOfReps}}
-        {{exercise.exercise ? exercise.exercise.name : ""}}
-        {{exercise.markedDeleted ? "del" : ""}}
-        <v-btn icon small color="red" v-if="isEdit" @click="deleteExerciseEntry(exercise.id)">
+      <div v-if="exercise.isWorkout && !exercise.markedDeleted">
+        {{ exercise.numberOfSets }} x
+        {{ exercise.numberOfReps }}
+        {{ exercise.exercise ? exercise.exercise.name : '' }}
+        {{ exercise.markedDeleted ? 'del' : '' }}
+        <v-btn
+          icon
+          small
+          color="red"
+          v-if="isEdit"
+          @click="deleteExerciseEntry(exercise.id)"
+        >
           <v-icon>{{ minusIcon }}</v-icon>
         </v-btn>
       </div>
     </div>
-    <v-btn icon small color="green" v-if="isEdit" @click="newEntryFieldWork = !newEntryFieldWork">
+    <v-btn
+      icon
+      small
+      color="green"
+      v-if="isEdit"
+      @click="newEntryFieldWork = !newEntryFieldWork"
+    >
       <v-icon>{{ plusIcon }}</v-icon>
     </v-btn>
     <v-container fluid>
@@ -106,16 +130,16 @@
 </template>
 
 <script>
-import { mdiPlus, mdiMinus, mdiClose, mdiCheck } from "@mdi/js";
-import { CREATE_EXERCISE_ENTRY } from "../queries/createExerciseEntry.js";
+import { mdiPlus, mdiMinus, mdiClose, mdiCheck } from '@mdi/js';
+import { CREATE_EXERCISE_ENTRY } from '../queries/createExerciseEntry.js';
 import {
   DELETE_OFFLINE_EXENTRY,
-  MARK_DELETE_SERVER_EXENTRY
-} from "../queries/deleteExerciseEntry.js";
-import { GET_ENTRIES_FROM_CACHE } from "../queries/allSportEntries.js";
+  MARK_DELETE_SERVER_EXENTRY,
+} from '../queries/deleteExerciseEntry.js';
+import { GET_ENTRIES_FROM_CACHE } from '../queries/allSportEntries.js';
 export default {
-  name: "ActualExercises",
-  props: ["exercises", "isEdit", "cardID", "category", "possibleChoices"],
+  name: 'ActualExercises',
+  props: ['exercises', 'isEdit', 'cardID', 'category', 'possibleChoices'],
   data: () => ({
     plusIcon: mdiPlus,
     minusIcon: mdiMinus,
@@ -123,7 +147,7 @@ export default {
     checkIcon: mdiCheck,
     newEntryFieldWarm: false,
     newEntryFieldWork: false,
-    newEntryObj: { sets: 0, reps: 0, exID: 0, exName: "" }
+    newEntryObj: { sets: 0, reps: 0, exID: 0, exName: '' },
   }),
   computed: {
     getExerciseName() {
@@ -132,21 +156,19 @@ export default {
         names.push(name.name);
       }
       return names;
-    }
+    },
   },
   methods: {
     setExName(id) {
-      this.possibleChoices.forEach(choice => {
+      this.possibleChoices.forEach((choice) => {
         if (choice.id == id) {
           this.newEntryObj.exName = choice.name;
         }
       });
-      console.log(this.newEntryObj.exName);
     },
     createExerciseEntry(isWorkout, newEntry) {
       this.newEntryFieldWarm = false;
       this.newEntryFieldWork = false;
-      console.log(newEntry);
       this.$apollo.mutate({
         mutation: CREATE_EXERCISE_ENTRY,
         variables: {
@@ -155,24 +177,23 @@ export default {
           sets: newEntry.sets,
           reps: newEntry.reps,
           exID: newEntry.exID,
-          exName: newEntry.exName
+          exName: newEntry.exName,
         },
         update: (cache, { data: { createExerciseEntry } }) => {
           const data = cache.readQuery({
-            query: GET_ENTRIES_FROM_CACHE
+            query: GET_ENTRIES_FROM_CACHE,
           });
-          console.log(data, createExerciseEntry);
           //data.allSporteintrag.push(createExerciseEntryOffline.exerciseEntry);
-          data.allSporteintrag.forEach(card => {
+          data.allSporteintrag.forEach((card) => {
             if (card.id === createExerciseEntry.sportEntry.id) {
               card.uebungseintragSet.push(createExerciseEntry);
             }
           });
           cache.writeQuery({
             query: GET_ENTRIES_FROM_CACHE,
-            data
+            data,
           });
-        }
+        },
       });
     },
     deleteExerciseEntry(id) {
@@ -180,11 +201,11 @@ export default {
         this.$apollo.mutate({
           mutation: DELETE_OFFLINE_EXENTRY,
           variables: {
-            id: id
+            id: id,
           },
           update: (cache, { data: { deleteExerciseEntryOffline } }) => {
             const data = cache.readQuery({
-              query: GET_ENTRIES_FROM_CACHE
+              query: GET_ENTRIES_FROM_CACHE,
             });
             for (let i in data.allSporteintrag) {
               for (let j in data.allSporteintrag[i].uebungseintragSet) {
@@ -198,9 +219,9 @@ export default {
             }
             cache.writeQuery({
               query: GET_ENTRIES_FROM_CACHE,
-              data
+              data,
             });
-          }
+          },
         });
       }
       // this case is for marking entries to be deleted
@@ -208,12 +229,12 @@ export default {
         this.$apollo.mutate({
           mutation: MARK_DELETE_SERVER_EXENTRY,
           variables: {
-            id: id
-          }
+            id: id,
+          },
         });
       }
-    }
-  }
+    },
+  },
 };
 </script>
 

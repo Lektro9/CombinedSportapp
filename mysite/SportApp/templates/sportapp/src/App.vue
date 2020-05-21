@@ -50,8 +50,12 @@
         @detected-condition="amIOnline"
       ></v-offline>
 
-      <v-btn text small @click="clearCache()">clear cache</v-btn>
-      <v-btn text small @click="fetchDataFromServer()">load serverdata</v-btn>
+      <v-btn text small @click="clearCache()" :disabled="!this.onLine"
+        >clear cache</v-btn
+      >
+      <v-btn text small @click="fetchDataFromServer()" :disabled="!this.onLine"
+        >load serverdata</v-btn
+      >
       <v-btn
         icon
         @click="syncCards()"
@@ -179,16 +183,6 @@ export default {
     },
     // this is for clearing cache and refetching it from the server (cache could become a problem after too much offline usage)
     clearCache() {
-      // this.$apollo.queries.queryOnlineData.skip = true;
-      // this.$apollo.queries.allUebungServer.skip = true;
-      // this.$apollo.queries.AllKategorieServer.skip = true;
-      // this.$apollo.queries.AllFilteredEntries.skip = true;
-      // Object.values(this.$apollo.provider.clients).forEach((client) =>
-      //   client.resetStore().then(() => {
-      //     this.allSporteintrag = [];
-      //     // this.fetchDataFromServer();
-      //   })
-      // );
       window.localStorage.clear();
       window.location.reload();
     },
@@ -234,7 +228,7 @@ export default {
     },
     syncCards() {
       const offlineCards = this.allSporteintrag.filter((sportEntry) => {
-        if (sportEntry.id < 0) {
+        if (sportEntry.id < 0 && !sportEntry.markedDeleted) {
           return sportEntry;
         }
       });
@@ -308,6 +302,7 @@ export default {
           })
           .then(() => {
             if (this.filtered) this.setFilter();
+            this.fetchDataFromServer();
           })
           .catch((error) => {
             // Error
@@ -360,34 +355,36 @@ export default {
         }
       });
       for (const ent of allExerciseEntries) {
-        this.$apollo.mutate({
-          mutation: DELETE_SERVER_EXENTRY,
-          variables: {
-            id: ent.id,
-          },
-          update: (cache, { data: { deleteExerciseEntry } }) => {
-            const data = cache.readQuery({
-              query: GET_ENTRIES_FROM_CACHE,
-            });
-            for (let i in data.allSporteintrag) {
-              for (let j in data.allSporteintrag[i].uebungseintragSet) {
-                if (
-                  data.allSporteintrag[i].uebungseintragSet[j].id ==
-                  deleteExerciseEntry.retID
-                ) {
-                  data.allSporteintrag[i].uebungseintragSet.splice(j, 1);
+        this.$apollo
+          .mutate({
+            mutation: DELETE_SERVER_EXENTRY,
+            variables: {
+              id: ent.id,
+            },
+            update: (cache, { data: { deleteExerciseEntry } }) => {
+              const data = cache.readQuery({
+                query: GET_ENTRIES_FROM_CACHE,
+              });
+              for (let i in data.allSporteintrag) {
+                for (let j in data.allSporteintrag[i].uebungseintragSet) {
+                  if (
+                    data.allSporteintrag[i].uebungseintragSet[j].id ==
+                    deleteExerciseEntry.retID
+                  ) {
+                    data.allSporteintrag[i].uebungseintragSet.splice(j, 1);
+                  }
                 }
               }
-            }
-            cache.writeQuery({
-              query: GET_ENTRIES_FROM_CACHE,
-              data,
-            });
-          },
-        });
+              cache.writeQuery({
+                query: GET_ENTRIES_FROM_CACHE,
+                data,
+              });
+            },
+          })
+          .then(() => {
+            this.fetchDataFromServer();
+          });
       }
-      console.log('here I have to fetch every query again imo');
-      this.fetchDataFromServer();
     },
   },
   apollo: {
