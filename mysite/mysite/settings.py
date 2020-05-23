@@ -129,6 +129,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 STATICFILES_DIRS = [
     'SportApp/templates/sportapp/dist/static/',
+    'SportApp/templates/sportapp/dist/img/'
 ]
 
 GRAPHENE = {
