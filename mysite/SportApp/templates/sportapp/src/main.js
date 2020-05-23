@@ -3,33 +3,19 @@ import App from './App.vue';
 import vuetify from './plugins/vuetify';
 import ApolloClient from 'apollo-client';
 import VueApollo from 'vue-apollo';
-import {
-  InMemoryCache
-} from 'apollo-cache-inmemory';
-import {
-  persistCache
-} from 'apollo-cache-persist';
-import {
-  HttpLink
-} from 'apollo-link-http';
-import {
-  RetryLink
-} from 'apollo-link-retry';
+import { InMemoryCache } from 'apollo-cache-inmemory';
+import { persistCache } from 'apollo-cache-persist';
+import { HttpLink } from 'apollo-link-http';
+import { RetryLink } from 'apollo-link-retry';
 import QueueLink from 'apollo-link-queue';
 import SerializingLink from 'apollo-link-serialize';
-import {
-  ApolloLink
-} from 'apollo-link';
-import {
-  gql
-} from 'apollo-boost';
-import {
-  GET_ENTRIES_FROM_CACHE
-} from './queries/allSportEntries.js';
+import { ApolloLink } from 'apollo-link';
+import { gql } from 'apollo-boost';
+import { GET_ENTRIES_FROM_CACHE } from './queries/allSportEntries.js';
 
 import './registerServiceWorker';
 
-const API_HOST = 'http://127.0.0.1:8000/graphql';
+const API_HOST = 'http://192.168.178.29:1337/graphql';
 
 // building link chain to go through when sending requests
 
@@ -67,7 +53,7 @@ async function willCreateProvider() {
 }
 
 // stuff for locale state
-const typeDefs = gql `
+const typeDefs = gql`
   extend type SporteintragType {
     markedDeleted: Boolean
   }
@@ -84,11 +70,7 @@ cache.writeData({
 
 const resolvers = {
   Query: {
-    allSporteintragFilter: (_, {
-      filter
-    }, {
-      cache
-    }) => {
+    allSporteintragFilter: (_, { filter }, { cache }) => {
       const data = cache.readQuery({
         query: GET_ENTRIES_FROM_CACHE,
       });
@@ -101,11 +83,7 @@ const resolvers = {
     },
   },
   Mutation: {
-    createSportEntryOffline: (_, {
-      createdAt,
-      categoryID,
-      categoryName
-    }) => {
+    createSportEntryOffline: (_, { createdAt, categoryID, categoryName }) => {
       // const data = cache.readQuery({ query: GET_ENTRIES_FROM_CACHE });
       const newEntry = {
         createSportEntry: {
@@ -130,11 +108,7 @@ const resolvers = {
       //cache.writeQuery({ query: GET_ENTRIES_FROM_CACHE, data });
       return newEntry.createSportEntry;
     },
-    deleteSportEntry: (_, {
-      id
-    }, {
-      cache
-    }) => {
+    deleteSportEntry: (_, { id }, { cache }) => {
       const data = cache.readQuery({
         query: GET_ENTRIES_FROM_CACHE,
       });
@@ -151,14 +125,8 @@ const resolvers = {
     },
     // throws a "Missing field exerciseEntry" warning which drives me crazy
     createExerciseEntry: (
-      _, {
-        isWorkout,
-        sportEntryId,
-        sets,
-        reps,
-        exID,
-        exName
-      }
+      _,
+      { isWorkout, sportEntryId, sets, reps, exID, exName }
     ) => {
       let newSet = {
         id: -Date.now(),
@@ -178,20 +146,14 @@ const resolvers = {
       };
       return newSet;
     },
-    deleteExerciseEntryOffline: (_, {
-      id
-    }) => {
+    deleteExerciseEntryOffline: (_, { id }) => {
       let deletedEntry = {
         id: id,
         __typename: 'notImportant',
       };
       return deletedEntry;
     },
-    markDeleteExerciseEntry: (_, {
-      id
-    }, {
-      cache
-    }) => {
+    markDeleteExerciseEntry: (_, { id }, { cache }) => {
       const data = cache.readQuery({
         query: GET_ENTRIES_FROM_CACHE,
       });

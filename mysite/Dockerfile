@@ -14,7 +14,7 @@ COPY ./Pipfile /usr/src/app/Pipfile
 RUN pip install pipenv
 
 # Install project dependencies
-RUN pipenv install --skip-lock --system --dev
+RUN pipenv install --skip-lock --system --dev --sequential
 
 # create statics folder
 RUN mkdir -p /home/app

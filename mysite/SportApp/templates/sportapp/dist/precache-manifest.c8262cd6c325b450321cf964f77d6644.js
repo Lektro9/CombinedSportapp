@@ -1,6 +1,6 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "e97b20e642e5c7f029c1633ebfac1aeb",
+    "revision": "aa435441be4ddcf0107e987886c25f2e",
     "url": "/index.html"
   },
   {
@@ -8,12 +8,12 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/manifest.json"
   },
   {
-    "revision": "2c3ab50870fc6348fe8f",
+    "revision": "66607972afe5f2387812",
     "url": "/static/css/app.dff0f1fe.css"
   },
   {
-    "revision": "934a4d32385ee46f96e3",
-    "url": "/static/css/chunk-vendors.b1c59f0d.css"
+    "revision": "ca2826459ccf5b01bfe9",
+    "url": "/static/css/chunk-vendors.a2eb4fd3.css"
   },
   {
     "revision": "25d64dd64c1e76ff727bd5f7c7020c5e",
@@ -256,11 +256,11 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/static/img/10StandToStand.b617767c.jpg"
   },
   {
-    "revision": "2c3ab50870fc6348fe8f",
-    "url": "/static/js/app.5a69047f.js"
+    "revision": "66607972afe5f2387812",
+    "url": "/static/js/app.0a7c40a7.js"
   },
   {
-    "revision": "934a4d32385ee46f96e3",
-    "url": "/static/js/chunk-vendors.402bb867.js"
+    "revision": "ca2826459ccf5b01bfe9",
+    "url": "/static/js/chunk-vendors.abd4eb69.js"
   }
 ]);
