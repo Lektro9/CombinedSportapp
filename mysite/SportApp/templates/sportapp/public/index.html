@@ -24,22 +24,7 @@
       >
     </noscript>
     <div id="app"></div>
-    <script>
-      var serviceWorkerPath = '/service-worker.js';
-      var charchaServiceWorker = registerServiceWorker(serviceWorkerPath);
-      function registerServiceWorker(serviceWorkerPath) {
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker
-            .register(serviceWorkerPath)
-            .then(function(reg) {
-              console.log('charcha service worker registered');
-            })
-            .catch(function(error) {
-              console.log(error);
-            });
-        }
-      }
-    </script>
+
     <!-- built files will be auto injected -->
   </body>
 </html>

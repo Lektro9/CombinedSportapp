@@ -10,14 +10,8 @@
   >
     <v-row justify="space-between" class="pa-2">
       <v-icon class="calicon">{{ calenderIcon }}</v-icon>
-      <div v-if="!isEdit || exerciseData.id > 0" class="date">
-        {{ makeDateReadable() }}
-      </div>
-      <input
-        v-if="isEdit && exerciseData.id < 0"
-        type="date"
-        v-model="exerciseData.dateOfEntry"
-      />
+      <div v-if="!isEdit || exerciseData.id > 0" class="date">{{ makeDateReadable() }}</div>
+      <input v-if="isEdit && exerciseData.id < 0" type="date" v-model="exerciseData.dateOfEntry" />
 
       <v-menu offset-y class="moreicon">
         <template v-slot:activator="{ on }">
@@ -44,10 +38,7 @@
         v-if="exerciseData.category != null"
         class="pa-0 ma-0"
         justify="center"
-      >
-        <v-icon large left>{{ muscleIcon }}</v-icon>
-        {{ exerciseData.category.name }} {{ exerciseData.id }}
-      </v-card-title>
+      >{{ exerciseData.category.name }}</v-card-title>
     </v-row>
 
     <ActualExercises
@@ -70,38 +61,39 @@
       row-height="20"
     ></v-textarea>
     {{ showComment() }}
+    <v-icon v-if="exerciseData.id < 0" class="botright">{{ SyncOff }}</v-icon>
   </v-card>
 </template>
 
 <script>
-import ActualExercises from './ActualExercises';
-import { GET_ENTRIES_FROM_CACHE } from '../queries/allSportEntries.js';
+import ActualExercises from "./ActualExercises";
+import { GET_ENTRIES_FROM_CACHE } from "../queries/allSportEntries.js";
 import {
   DELETE_ENTRY,
-  MARK_DELETE_ENTRY,
-} from '../queries/deleteSportEntry.js';
-import { mdiDotsVertical, mdiMinus, mdiCalendar, mdiArmFlex } from '@mdi/js';
+  MARK_DELETE_ENTRY
+} from "../queries/deleteSportEntry.js";
+import { mdiDotsVertical, mdiMinus, mdiCalendar, mdiSyncOff } from "@mdi/js";
 
 export default {
-  name: 'ExerciseCard',
-  props: ['exerciseData', 'allUebung'],
+  name: "ExerciseCard",
+  props: ["exerciseData", "allUebung"],
   components: {
-    ActualExercises,
+    ActualExercises
   },
   data: () => ({
     isEdit: false,
     moreIcon: mdiDotsVertical,
     minusIcon: mdiMinus,
     calenderIcon: mdiCalendar,
-    muscleIcon: mdiArmFlex,
-    readableDate: '',
+    SyncOff: mdiSyncOff,
+    readableDate: ""
   }),
   created() {},
   computed: {},
   methods: {
     getUebungen() {
       let possibleChoices = [];
-      this.allUebung.filter((uebung) => {
+      this.allUebung.filter(uebung => {
         if (uebung.category.name === this.exerciseData.category.name) {
           possibleChoices.push(uebung);
         }
@@ -115,11 +107,11 @@ export default {
     },
     makeDateReadable() {
       let cardDate = new Date(this.exerciseData.dateOfEntry);
-      let dayName = cardDate.toString().split(' ')[0];
+      let dayName = cardDate.toString().split(" ")[0];
       let day = cardDate.getDate();
       let month = cardDate.getMonth() + 1;
       let year = cardDate.getYear() + 1900;
-      this.readableDate = dayName + ' ' + day + '.' + month + '.' + year;
+      this.readableDate = dayName + " " + day + "." + month + "." + year;
       return this.readableDate;
     },
     editMethod(index) {
@@ -131,8 +123,8 @@ export default {
       this.$apollo.mutate({
         mutation: MARK_DELETE_ENTRY,
         variables: {
-          id: currentID,
-        },
+          id: currentID
+        }
       });
     },
     deleteCard() {
@@ -140,34 +132,34 @@ export default {
       this.$apollo.mutate({
         mutation: DELETE_ENTRY,
         variables: {
-          id: currentID,
+          id: currentID
         },
         update: (cache, { data: { deleteSportEntry } }) => {
           console.log(deleteSportEntry);
           // logs 2 times because update gets executed 2 times (optimistic and actual)
           const data = cache.readQuery({
-            query: GET_ENTRIES_FROM_CACHE,
+            query: GET_ENTRIES_FROM_CACHE
           });
-          data.allSporteintrag = data.allSporteintrag.filter((e) => {
+          data.allSporteintrag = data.allSporteintrag.filter(e => {
             return e.id !== currentID;
           });
           cache.writeQuery({
             query: GET_ENTRIES_FROM_CACHE,
-            data,
+            data
           });
         },
         optimisticResponse: {
           deleteSportEntry: {
             ok: true,
-            __typename: 'DeleteSportEntry',
-          },
+            __typename: "DeleteSportEntry"
+          }
         },
         context: {
-          serializationKey: 'CARDS',
-        },
+          serializationKey: "CARDS"
+        }
       });
-    },
-  },
+    }
+  }
 };
 </script>
 
@@ -189,7 +181,19 @@ export default {
   max-width: 40%;
 }
 
+.botright {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  fill: #a01d39;
+}
+
 .calicon {
   max-width: 20%;
+}
+
+.theme--light.v-card {
+  background-color: #fafafa;
+  color: rgba(0, 0, 0, 0.87);
 }
 </style>

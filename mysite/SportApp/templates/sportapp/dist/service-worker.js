@@ -1,7 +1,7 @@
-importScripts("/precache-manifest.8c1e2e2a1d7648b3993794d7c5394e65.js", "https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
+importScripts("/precache-manifest.6fe2853d17b3338850689fb1b7dcd2ff.js", "https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 if (workbox) {
-  // adjust log level for displaying workbox logs 
+  // adjust log level for displaying workbox logs
   // doesnt work anymore? gives errors and stops service worker
   // workbox.core.setLogLevel(workbox.core.LOG_LEVELS.debug);
 
@@ -21,7 +21,7 @@ if (workbox) {
   workbox.routing.registerRoute(
     /^https:\/\/fonts\.googleapis\.com/,
     new workbox.strategies.StaleWhileRevalidate({
-      cacheName: 'google-fonts-stylesheets'
+      cacheName: 'google-fonts-stylesheets',
     })
   );
 
@@ -31,26 +31,26 @@ if (workbox) {
       cacheName: 'google-fonts-webfonts',
       plugins: [
         new workbox.cacheableResponse.Plugin({
-          statuses: [0, 200]
+          statuses: [0, 200],
         }),
         new workbox.expiration.Plugin({
           maxAgeSeconds: 60 * 60 * 24 * 365,
-          maxEntries: 30
-        })
-      ]
+          maxEntries: 30,
+        }),
+      ],
     })
   );
 
   workbox.routing.registerRoute(
     /^https:\/\/stackpath\.bootstrapcdn\.com/,
     new workbox.strategies.StaleWhileRevalidate({
-      cacheName: 'fontawesome'
+      cacheName: 'fontawesome',
     })
   );
 }
 
 // This code listens for the user's confirmation to update the app.
-self.addEventListener('message', e => {
+self.addEventListener('message', (e) => {
   if (!e.data) {
     return;
   }
@@ -66,7 +66,7 @@ self.addEventListener('message', e => {
 });
 
 // Listen to Push
-self.addEventListener('push', e => {
+self.addEventListener('push', (e) => {
   let data;
   if (e.data) {
     data = e.data.json();
@@ -77,8 +77,9 @@ self.addEventListener('push', e => {
     icon: '/img/icons/android-chrome-192x192.png',
     image: '/img/autumn-forest.png',
     vibrate: [300, 200, 300],
-    badge: '/img/icons/plint-badge-96x96.png'
+    badge: '/img/icons/plint-badge-96x96.png',
   };
 
   e.waitUntil(self.registration.showNotification(data.title, options));
 });
+

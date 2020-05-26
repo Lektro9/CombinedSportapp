@@ -15,7 +15,7 @@ import { GET_ENTRIES_FROM_CACHE } from './queries/allSportEntries.js';
 
 import './registerServiceWorker';
 
-const API_HOST = 'https://calis.shmiede.de/graphql';
+const API_HOST = 'http://localhost:8000/graphql';
 
 // building link chain to go through when sending requests
 
