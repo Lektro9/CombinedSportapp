@@ -20,7 +20,7 @@
           </v-btn>
         </template>
         <v-list dense>
-          <v-list-item @click="isEdit = !isEdit">
+          <v-list-item @click="toggleEdit(isEdit)">
             <v-list-item-title>Edit</v-list-item-title>
           </v-list-item>
           <v-list-item @click="markDelete()">
@@ -72,6 +72,7 @@ import {
   DELETE_ENTRY,
   MARK_DELETE_ENTRY
 } from "../queries/deleteSportEntry.js";
+import { UPDATE_OFFLINE_CARD } from "../queries/createOrUpdateCard.js";
 import { mdiDotsVertical, mdiMinus, mdiCalendar, mdiSyncOff } from "@mdi/js";
 
 export default {
@@ -91,6 +92,21 @@ export default {
   created() {},
   computed: {},
   methods: {
+    toggleEdit(isEdit) {
+      if (isEdit) {
+        this.isEdit = false;
+        this.$apollo.mutate({
+          mutation: UPDATE_OFFLINE_CARD,
+          variables: {
+            cardID: this.exerciseData.id,
+            createdAt: this.exerciseData.Date,
+            comment: this.exerciseData.commentOfTheDay
+          }
+        });
+      } else {
+        this.isEdit = true;
+      }
+    },
     getUebungen() {
       let possibleChoices = [];
       this.allUebung.filter(uebung => {

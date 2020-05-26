@@ -170,6 +170,24 @@ const resolvers = {
       });
       return null;
     },
+    updateOfflineCard: (_, { createdAt, cardID, comment }, { cache }) => {
+      const data = cache.readQuery({
+        query: GET_ENTRIES_FROM_CACHE,
+      });
+      data.allSporteintrag.forEach((card) => {
+        card.uebungseintragSet.forEach((set) => {
+          if (set.id === cardID) {
+            set.createdAt = createdAt;
+            set.commentOfTheDay = comment;
+          }
+        });
+      });
+      cache.writeQuery({
+        query: GET_ENTRIES_FROM_CACHE,
+        data,
+      });
+      return null;
+    },
   },
   SporteintragType: {
     markedDeleted() {
