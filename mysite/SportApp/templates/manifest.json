@@ -1,6 +1,6 @@
 {
-  "name": "SportApp",
-  "short_name": "Sport",
+  "name": "CalisApp",
+  "short_name": "CalisApp",
   "start_url": "/",
   "display": "standalone",
   "theme_color": "#0476F2",
