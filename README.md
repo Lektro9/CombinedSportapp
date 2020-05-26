@@ -1,13 +1,17 @@
 # CombinedSportapp
+
 This is a combinded version of Sportapp and SportappFrontend
 
-# Docker commands
-$ docker-compose down -v
+# How to start everything
 
-$ docker-compose -f docker-compose.prod.yml up -d --build
+```bash
+cd CombinedSportapp/mysite
+sudo docker-compose down -v
+sudo docker-compose -f docker-compose.prod.yml up -d --build
 
-$ docker-compose -f docker-compose.prod.yml exec web python manage.py migrate --noinput
+sudo docker-compose -f docker-compose.prod.yml exec web python manage.py migrate --noinput
 
-$ docker-compose -f docker-compose.prod.yml exec web python manage.py collectstatic --no-input --clear
+sudo docker-compose -f docker-compose.prod.yml exec web python manage.py collectstatic --no-input --clear
 
-$ sudo docker-compose logs -f
+sudo docker-compose logs -f
+```
