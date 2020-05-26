@@ -1,4 +1,4 @@
-importScripts("/precache-manifest.6fe2853d17b3338850689fb1b7dcd2ff.js", "https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
+importScripts("/precache-manifest.f4d5be5967e6b36ff9008412cc81b74e.js", "https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 if (workbox) {
   // adjust log level for displaying workbox logs

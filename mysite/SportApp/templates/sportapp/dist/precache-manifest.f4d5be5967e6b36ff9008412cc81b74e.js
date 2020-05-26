@@ -1,6 +1,6 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "80927ae6b5910c18591a6276c611483f",
+    "revision": "76af93356df4d4df0cccfab37073b91f",
     "url": "/index.html"
   },
   {
@@ -8,7 +8,7 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/manifest.json"
   },
   {
-    "revision": "693c4c435207ebfe65a0",
+    "revision": "f8f96e5052e97f508ba4",
     "url": "/static/css/app.16892037.css"
   },
   {
@@ -256,8 +256,8 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/static/img/10StandToStand.b617767c.jpg"
   },
   {
-    "revision": "693c4c435207ebfe65a0",
-    "url": "/static/js/app.cb884efb.js"
+    "revision": "f8f96e5052e97f508ba4",
+    "url": "/static/js/app.1e77c41b.js"
   },
   {
     "revision": "177a7adcab7f16e088ad",
